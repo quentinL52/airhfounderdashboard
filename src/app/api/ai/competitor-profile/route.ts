@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
 import { withAuth } from '@/lib/security';
+import { logger } from '@/lib/logging/logger';
 
 const apiKey = process.env.AI_API_KEY;
 const openai = apiKey ? new OpenAI({ apiKey }) : null;
@@ -23,7 +24,7 @@ async function tavilyExtract(url: string) {
         const data = await response.json();
         return data;
     } catch (error) {
-        console.error('Tavily extract failed:', error);
+        logger.error('Tavily extract failed', error);
         return null;
     }
 }
@@ -99,7 +100,7 @@ Write descriptions in ${language === 'fr' ? 'French' : 'English'}.`;
 
         return NextResponse.json(profile);
     } catch (error) {
-        console.error('Competitor Profile Error:', error);
+        logger.error('Competitor Profile Error', error, { userId });
         return NextResponse.json(
             { error: 'Failed to extract competitor profile' },
             { status: 500 }

@@ -68,6 +68,7 @@ export const SynthesisSchema = z.object({
     targetDate: z.string().nullable().describe("ISO date string for 90 days from now"),
   }),
   founderProfile: z.string().describe("A customized, dynamic summary of who the founder is based on their answers."),
+  dilemma: z.string().nullable().optional().describe("If the user's answers reveal a tough choice, trade-off, or strategic dilemma, summarize it here (e.g. 'Build generic vs niche?'). Otherwise null."),
 });
 
 export type OnboardingSynthesis = z.infer<typeof SynthesisSchema>;

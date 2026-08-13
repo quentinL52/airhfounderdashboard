@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { withAuth, withValidation } from '@/lib/security';
 import { executeAgent } from '@/lib/ai/agent-orchestrator';
 import type { ProviderName } from '@/lib/ai/provider-interface';
+import { logger } from '@/lib/logging/logger';
 
 // Ensure the agent is registered
 import '@/lib/ai/agents/content-creator';
@@ -47,6 +48,7 @@ const handler = withAuth(
         const result = await executeAgent(
           'content-creator',
           {
+            userId,
             storeData: body.context as Record<string, unknown>,
             userInstruction: body.context.userInstruction,
             locale: body.locale || 'fr',
@@ -57,13 +59,13 @@ const handler = withAuth(
           },
         );
 
-        if (result.status === 'error') {
+        if (result.status === 'failed') {
           return NextResponse.json(result, { status: 500 });
         }
 
         return NextResponse.json(result);
       } catch (error) {
-        console.error('[Content API Route] Error:', error);
+        logger.error('[Content API Route] Error', error, { userId });
         return NextResponse.json(
           { error: 'Internal server error while executing content creator.' },
           { status: 500 },

@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { withAuth } from '@/lib/security';
 import { generateText } from 'ai';
 import { mistral } from '@ai-sdk/mistral';
+import { logger } from '@/lib/logging/logger';
 
 async function handler(
   req: NextRequest, 
@@ -51,7 +52,7 @@ Ta réponse doit être courte (2-3 paragraphes max).`;
 
         aiFeedback = text;
       } catch (err) {
-        console.error('[Decision Challenge] LLM Error:', err);
+        logger.error('[Decision Challenge] LLM Error', err, { userId, decisionId });
         aiFeedback = "⚠️ Erreur de l'IA lors de l'analyse. Mode dégradé activé. Essayez plus tard.";
       }
     }
@@ -67,7 +68,7 @@ Ta réponse doit être courte (2-3 paragraphes max).`;
     return NextResponse.json({ decision: updatedDecision });
 
   } catch (e: any) {
-    console.error('[Decision Challenge] Error:', e);
+    logger.error('[Decision Challenge] Error', e, { userId, decisionId });
     return NextResponse.json({ error: e.message }, { status: 500 });
   }
 }

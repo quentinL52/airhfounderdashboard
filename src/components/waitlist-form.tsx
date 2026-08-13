@@ -9,7 +9,7 @@ export function WaitlistForm() {
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
 
-  const [botField, setBotField] = useState('');
+  const [website, setWebsite] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -19,10 +19,13 @@ export function WaitlistForm() {
     setError('');
 
     try {
+      const timestamp = Date.now();
+      const signature = btoa(`${email}:${timestamp}:HELMDASH`);
+
       const res = await fetch('/api/waitlist', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, botField }),
+        body: JSON.stringify({ email, website, timestamp, signature }),
       });
 
       if (!res.ok) {
@@ -52,12 +55,12 @@ export function WaitlistForm() {
       <div style={{ display: "flex", gap: 8 }}>
         <input
           type="text"
-          name="bot_field"
+          name="website"
           style={{ display: 'none' }}
           tabIndex={-1}
           autoComplete="off"
-          value={botField}
-          onChange={(e) => setBotField(e.target.value)}
+          value={website}
+          onChange={(e) => setWebsite(e.target.value)}
         />
         <input
           type="email"

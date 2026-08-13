@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { z } from 'zod';
-import { withAuth, withValidation } from '@/lib/security';
+import { createApiEndpoint, InternalServerError } from '@/lib/api/create-api-endpoint';
 import { executeAgent } from '@/lib/ai/agent-orchestrator';
 import type { ProviderName } from '@/lib/ai/provider-interface';
 
@@ -30,39 +30,26 @@ const coachSchema = z.object({
   locale: z.enum(['fr', 'en']).optional(),
 });
 
-const handler = withAuth(
-  withValidation(coachSchema)(
-    async (
-      req: NextRequest,
-      { userId, body }: { userId: string; body: z.infer<typeof coachSchema> },
-    ) => {
-      try {
-        const result = await executeAgent(
-          'founder-coach',
-          {
-            storeData: body.context as Record<string, unknown>,
-            locale: body.locale || 'fr',
-          },
-          {
-            provider: body.provider as ProviderName,
-            model: body.model,
-          },
-        );
+export const POST = createApiEndpoint({
+  bodySchema: coachSchema,
+  async handler(req, { body, userId }) {
+    const result = await executeAgent(
+      'founder-coach',
+      {
+        userId,
+        storeData: body.context as Record<string, unknown>,
+        locale: body.locale || 'fr',
+      },
+      {
+        provider: body.provider as ProviderName,
+        model: body.model,
+      },
+    );
 
-        if (result.status === 'error') {
-          return NextResponse.json(result, { status: 500 });
-        }
+    if (result.status === 'failed') {
+      throw new InternalServerError(result.error || 'Failed to execute founder coach.', result);
+    }
 
-        return NextResponse.json(result);
-      } catch (error) {
-        console.error('[Coach API Route] Error:', error);
-        return NextResponse.json(
-          { error: 'Internal server error while executing founder coach.' },
-          { status: 500 },
-        );
-      }
-    },
-  ),
-);
-
-export const POST = handler;
+    return NextResponse.json(result);
+  },
+});

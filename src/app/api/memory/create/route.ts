@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { withAuth, withValidation } from '@/lib/security';
 import { memory } from '@/lib/ai/memory/obsidian-memory';
+import { logger } from '@/lib/logging/logger';
 
 const createSchema = z.object({
   content: z.string().min(1).describe('Contenu en markdown de la note'),
@@ -39,7 +40,7 @@ const handler = withAuth(
           message: 'Note sauvegardée dans la mémoire.',
         });
       } catch (error) {
-        console.error('[Memory Create API] Error:', error);
+        logger.error('[Memory Create API] Error', error, { userId });
         return NextResponse.json(
           { error: 'Failed to create memory note' },
           { status: 500 },

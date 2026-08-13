@@ -9,6 +9,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import type { ChatMessage, ChatOptions, ProviderName } from '@/lib/ai/provider-interface';
 import { getProviderRegistry } from '@/lib/ai/provider-registry';
 import { withAuth } from '@/lib/security/with-auth';
+import { logger } from '@/lib/logging/logger';
 
 /** Default provider when none is specified (backward compatibility). */
 const DEFAULT_PROVIDER: ProviderName = 'openai';
@@ -74,6 +75,11 @@ async function resolveApiKey(provider: ProviderName, userId: string): Promise<st
  * }
  * ```
  */
+import { aiGateway, QuotaExceededError } from '@/modules/shared/infrastructure/ai/ai-gateway';
+
+/**
+ * POST /api/ai
+ */
 async function handler(request: NextRequest, { userId }: { userId: string }) {
   try {
     const body = await request.json();
@@ -89,26 +95,17 @@ async function handler(request: NextRequest, { userId }: { userId: string }) {
     const provider: ProviderName = requestedProvider ?? DEFAULT_PROVIDER;
     const model: string = requestedModel ?? DEFAULT_MODELS[provider];
 
-    // Ensure the requested provider has a valid API key
-    const apiKey = await resolveApiKey(provider, userId);
-    if (!apiKey) {
-      return NextResponse.json(
-        {
-          error: `No API key configured for provider "${provider}". Check your environment variables.`,
-        },
-        { status: 401 }
-      );
-    }
-
-    const registry = getProviderRegistry();
-    const providerInstance = registry.get(provider);
-
     // --- Direct chat mode ---
     if (messages && Array.isArray(messages)) {
       const chatMessages: ChatMessage[] = messages;
-      const chatOptions: ChatOptions | undefined = options;
 
-      const response = await providerInstance.chat(chatMessages, model, chatOptions);
+      const response = await aiGateway.chat(userId, chatMessages, {
+        provider,
+        model,
+        temperature: options?.temperature,
+        maxTokens: options?.maxTokens,
+      });
+
       return NextResponse.json({
         result: response.content,
         model: response.model,
@@ -125,25 +122,33 @@ async function handler(request: NextRequest, { userId }: { userId: string }) {
       );
     }
 
-    let result: string;
+    let actionMessages: ChatMessage[];
 
     switch (action) {
       case 'weekly-report':
-        result = await handleLegacyAction(providerInstance, model, buildWeeklyReportMessages(data));
+        actionMessages = buildWeeklyReportMessages(data);
         break;
       case 'follow-up':
-        result = await handleLegacyAction(providerInstance, model, buildFollowUpMessages(data));
+        actionMessages = buildFollowUpMessages(data);
         break;
       case 'routine-analysis':
-        result = await handleLegacyAction(providerInstance, model, buildRoutineAnalysisMessages(data));
+        actionMessages = buildRoutineAnalysisMessages(data);
         break;
       default:
         return NextResponse.json({ error: 'Unknown action' }, { status: 400 });
     }
 
-    return NextResponse.json({ result });
+    const response = await aiGateway.chat(userId, actionMessages, {
+      provider,
+      model,
+    });
+
+    return NextResponse.json({ result: response.content });
   } catch (error) {
-    console.error('[API /ai] Error:', error);
+    if (error instanceof QuotaExceededError) {
+      return NextResponse.json({ error: error.message }, { status: 429 });
+    }
+    logger.error('[API /ai] Error', error, { userId });
     const message = error instanceof Error ? error.message : 'AI generation failed';
     return NextResponse.json({ error: message }, { status: 500 });
   }

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
 import { withAuth } from '@/lib/security';
+import { logger } from '@/lib/logging/logger';
+import { agentRepository } from '@/modules/agent/infrastructure';
 
 async function handler(
   req: NextRequest,
@@ -11,33 +12,20 @@ async function handler(
     const conversationId = searchParams.get('conversationId');
 
     if (conversationId) {
-      // Fetch specific conversation
-      const conversation = await prisma.conversation.findUnique({
-        where: { id: conversationId },
-        include: {
-          messages: {
-            orderBy: { createdAt: 'asc' }
-          }
-        }
-      });
+      const conversation = await agentRepository.getConversation(conversationId, userId);
 
-      if (!conversation || conversation.userId !== userId) {
+      if (!conversation) {
         return NextResponse.json({ error: 'Conversation not found' }, { status: 404 });
       }
 
       return NextResponse.json({ conversation });
     } else {
-      // Fetch recent conversations
-      const conversations = await prisma.conversation.findMany({
-        where: { userId },
-        orderBy: { updatedAt: 'desc' },
-        take: 20,
-      });
+      const conversations = await agentRepository.listConversations(userId, 20);
 
       return NextResponse.json({ conversations });
     }
   } catch (error) {
-    console.error('Error fetching chat history:', error);
+    logger.error('Error fetching chat history', error, { userId });
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }

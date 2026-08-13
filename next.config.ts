@@ -4,6 +4,30 @@ import createNextIntlPlugin from 'next-intl/plugin';
 const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts');
 
 const nextConfig: NextConfig = {
+  outputFileTracingRoot: process.cwd(),
+  serverExternalPackages: ['@composio/core'],
+  webpack: (config, { isServer, webpack }) => {
+    if (!isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        fs: false,
+        os: false,
+        path: false,
+        http: false,
+        https: false,
+        url: false,
+        child_process: false,
+        crypto: false,
+        async_hooks: false,
+      };
+      config.plugins.push(
+        new webpack.NormalModuleReplacementPlugin(/^node:/, (resource: any) => {
+          resource.request = resource.request.replace(/^node:/, '');
+        })
+      );
+    }
+    return config;
+  },
   typescript: {
     ignoreBuildErrors: false,
   },

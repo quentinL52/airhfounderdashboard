@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { withAuth, withValidation } from '@/lib/security';
 import { memory } from '@/lib/ai/memory/obsidian-memory';
 import { composio } from '@/lib/integrations/composio-client';
+import { logger } from '@/lib/logging/logger';
 
 const connectSchema = z.object({
   appName: z.string().min(1).describe("Nom de l'application à connecter (github, linear, notion, slack, gmail, stripe)"),
@@ -44,7 +45,7 @@ const handler = withAuth(
           message: `Connectez votre compte ${appName} via Composio pour autoriser Helmdash à agir en votre nom.`,
         });
       } catch (error) {
-        console.error('[Composio Connect] Error:', error);
+        logger.error('[Composio Connect] Error', error, { userId });
         return NextResponse.json(
           { error: `Failed to initiate ${body.appName} connection: ${error instanceof Error ? error.message : 'Unknown error'}` },
           { status: 500 },

@@ -2,44 +2,52 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { z } from 'zod';
 import { Resend } from 'resend';
+import { upstashRateLimit } from '@/lib/security/with-rate-limit';
+import { env } from '@/lib/env';
+import { logger } from '@/lib/logging/logger';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 const waitlistSchema = z.object({
-  email: z.string().email('Email invalide'),
-  botField: z.string().optional(), // Honeypot field
+  email: z.string().email('Email invalide').transform(e => e.toLowerCase().trim()),
+  website: z.string().optional(), // Honeypot field
+  timestamp: z.number().optional(),
+  signature: z.string().optional(),
 });
-
-// In-memory rate limiting map for basic protection
-const ipRequestMap = new Map<string, { count: number, timestamp: number }>();
 
 export async function POST(req: NextRequest) {
   try {
     const ip = req.headers.get('x-forwarded-for') ?? (req as any).ip ?? 'unknown';
     
     // Rate limit: 5 requests per minute
-    const now = Date.now();
-    const rateLimitData = ipRequestMap.get(ip);
-    if (rateLimitData) {
-      if (now - rateLimitData.timestamp < 60000) {
-        if (rateLimitData.count >= 5) {
-          return NextResponse.json({ error: 'Trop de requêtes, veuillez réessayer plus tard.' }, { status: 429 });
-        }
-        rateLimitData.count += 1;
-      } else {
-        rateLimitData.count = 1;
-        rateLimitData.timestamp = now;
-      }
-    } else {
-      ipRequestMap.set(ip, { count: 1, timestamp: now });
+    const rateLimit = await upstashRateLimit(`waitlist:${ip}`, 5);
+    if (!rateLimit.allowed) {
+      return NextResponse.json({ error: 'Trop de requêtes, veuillez réessayer plus tard.' }, { status: 429 });
     }
 
+    const now = Date.now();
     const body = await req.json();
-    const { email, botField } = waitlistSchema.parse(body);
+    const { email, website, timestamp, signature } = waitlistSchema.parse(body);
 
     // Honeypot check
-    if (botField) {
+    if (website) {
       return NextResponse.json({ error: 'Invalid request' }, { status: 400 });
+    }
+
+    // Signature/Timestamp check (fail-open)
+    if (timestamp && signature) {
+      // Basic signature check: btoa(`${email}:${timestamp}:HELMDASH`)
+      const expectedSignature = Buffer.from(`${email}:${timestamp}:HELMDASH`).toString('base64');
+      if (signature !== expectedSignature) {
+        logger.warn(`[Waitlist] Invalid signature for ${email}`);
+        // fail-open: We don't block the request, but we could flag it in DB or just proceed.
+      }
+      
+      const age = now - timestamp;
+      if (age < 0 || age > 1000 * 60 * 60) { // Future or older than 1 hour
+        logger.warn(`[Waitlist] Invalid timestamp for ${email}`);
+        // fail-open
+      }
     }
 
     // Try to create, ignore if already exists. Status is pending by default.
@@ -50,7 +58,7 @@ export async function POST(req: NextRequest) {
     });
 
     if (entry.status === 'pending') {
-      const confirmUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'https://helmdash.com'}/api/waitlist/confirm?token=${entry.id}`;
+      const confirmUrl = `${env.NEXT_PUBLIC_APP_URL}/api/waitlist/confirm?token=${entry.id}`;
       
       // Envoi de l'email de confirmation via Resend
       if (process.env.RESEND_API_KEY) {
@@ -73,7 +81,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ success: true, entry });
   } catch (error) {
-    console.error('Waitlist error:', error);
+    logger.error('Waitlist error', error);
     if (error instanceof z.ZodError) {
       return NextResponse.json({ error: error.errors[0].message }, { status: 400 });
     }

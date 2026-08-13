@@ -32,6 +32,8 @@ model User {
   onboardedAt          DateTime? @map("onboarded_at")
   locale               String    @default("en")
   timezone             String    @default("Europe/Paris")
+  role                 String?   @default("user")
+  mvpTargetDate        DateTime? @map("mvp_target_date") @db.Date
 
   projects      Project[]
   moodEntries   MoodEntry[]
@@ -56,6 +58,10 @@ model User {
   scheduledTasks        ScheduledTask[]
   agentTasks            AgentTask[]
   gamificationProfile   GamificationProfile?
+  objectives            Objective[]
+  keyResults            KeyResult[]
+  watchSettings         WatchSettings?
+  importLogs            ImportLog[]
   onboardingSession     OnboardingSession?
   conversations         Conversation[]
   aiCostLogs            AiCostLog[]
@@ -65,6 +71,7 @@ model User {
   dailyPlans            DailyPlan[]
   sweepResults          SweepResult[]
   decisions             Decision[]
+  agentProposals        AgentProposal[]
 
   @@map("users")
 }
@@ -512,6 +519,7 @@ model RoadmapItem {
   startDate    DateTime?       @map("start_date") @db.Date
   dueDate      DateTime?       @map("due_date") @db.Date
   milestone    Boolean         @default(false)
+  gtmStepId    String?         @map("gtm_step_id")
   createdAt    DateTime        @default(now()) @map("created_at")
   updatedAt    DateTime        @default(now()) @map("updated_at")
 
@@ -599,6 +607,24 @@ model GamificationProfile {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("gamification_profiles")
+}
+
+model AgentProposal {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  source    String   @default("chat") // chat|auto_capture|import
+  tabName   String   @map("tab_name")
+  action    String // create|update|delete
+  payload   Json
+  status    String   @default("pending") // pending|accepted|rejected
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([userId, status])
+  @@map("agent_proposals")
 }
 
 // ==========================================
@@ -772,3 +798,69 @@ model Waitlist {
   status    String   @default("pending")
   createdAt DateTime @default(now()) @map("created_at")
 }
+
+model Objective {
+  id        String      @id @default(uuid()) @db.Uuid
+  userId    String      @map("user_id") @db.Uuid
+  title     String
+  period    String
+  status    String      @default("active") // active|done|dropped
+  createdAt DateTime    @default(now()) @map("created_at")
+  
+  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  keyResults KeyResult[]
+
+  @@index([userId])
+  @@map("objective")
+}
+
+model KeyResult {
+  id          String    @id @default(uuid()) @db.Uuid
+  objectiveId String    @map("objective_id") @db.Uuid
+  userId      String    @map("user_id") @db.Uuid
+  title       String
+  sourceType  String    // mrr|pipeline_won|waitlist_confirmed|hypotheses_validated|runway_months|manual
+  sourceConfig Json?    @map("source_config")
+  target      Float
+  current     Float     @default(0)
+  unit        String?
+  updatedAt   DateTime  @default(now()) @updatedAt @map("updated_at")
+
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  objective Objective @relation(fields: [objectiveId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("key_result")
+}
+
+model WatchSettings {
+  id               String    @id @default(uuid()) @db.Uuid
+  userId           String    @unique @map("user_id") @db.Uuid
+  frequency        String    @default("manual") // manual|weekly|biweekly|monthly
+  scope            Json      // { competitors: string[], queries: string[] }
+  remindersEnabled Boolean   @default(true) @map("reminders_enabled")
+  lastRunAt        DateTime? @map("last_run_at")
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("watch_settings")
+}
+
+model ImportLog {
+  id         String   @id @default(uuid()) @db.Uuid
+  userId     String   @map("user_id") @db.Uuid
+  target     String   // contacts|expenses|tasks|hypotheses|auto
+  fileType   String   @map("file_type") // text|csv|markdown|pdf
+  itemCount  Int      @default(0) @map("item_count")
+  status     String   @default("success") // success|partial|failed
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("import_logs")
+}
+
+

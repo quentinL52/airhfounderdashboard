@@ -11,6 +11,7 @@ import type { ProviderName } from '@/lib/ai/provider-interface';
 import { discoverModels } from '@/lib/ai/model-discovery';
 import { getProviderRegistry } from '@/lib/ai/provider-registry';
 import { withAuth } from '@/lib/security/with-auth';
+import { logger } from '@/lib/logging/logger';
 
 /** Maps provider names to their expected environment variable keys. */
 const ENV_KEY_MAP: Record<ProviderName, string[]> = {
@@ -112,7 +113,7 @@ async function handlerGet(request: NextRequest, { userId }: { userId: string }) 
     return NextResponse.json({ provider, models });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error';
-    console.error(`[API /ai/models] Error listing models for ${provider}:`, message);
+    logger.error(`[API /ai/models] Error listing models for ${provider}`, error, { userId, provider });
     return NextResponse.json(
       { error: `Failed to list models for ${provider}: ${message}` },
       { status: 502 }

@@ -3,7 +3,8 @@
 import dynamic from 'next/dynamic';
 import { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useFounderStore, HypothesisStatus, HypothesisRisk, HypothesisCategory } from '@/store/founder-store';
+import { useFounderStore } from '@/store/founder-store';
+import { HypothesisStatus, HypothesisRisk, HypothesisCategory } from '@/modules/gtm';
 import { translations } from '@/lib/translations';
 import { BoardSkeleton, TableSkeleton } from '@/components/ui/loading-skeleton';
 import { Button } from '@/components/ui/button';

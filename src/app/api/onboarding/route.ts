@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { withAuth } from '@/lib/security';
+import { logger } from '@/lib/logging/logger';
 
 async function handler(req: NextRequest, { userId }: { userId: string }) {
   if (req.method === 'GET') {
@@ -31,7 +32,7 @@ async function handler(req: NextRequest, { userId }: { userId: string }) {
 
       return NextResponse.json({ session });
     } catch (error: any) {
-      console.error('[Onboarding API] Error:', error);
+      logger.error('[Onboarding API] Error', error, { userId });
       return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
     }
   }

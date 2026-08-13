@@ -1,7 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { useFounderStore, Hypothesis, HypothesisStatus } from '@/store/founder-store';
+import { useFounderStore } from '@/store/founder-store';
+import { GrowthHypothesis as Hypothesis, HypothesisStatus } from '@/modules/gtm';
 import {
     Table,
     TableBody,

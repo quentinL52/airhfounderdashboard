@@ -12,5 +12,13 @@
         "message": "Do not use arbitrary hex colors in Tailwind classes (e.g. text-[#fff]). Use semantic design tokens instead."
       }
     ]
-  }
+  },
+  "overrides": [
+    {
+      "files": ["src/app/api/**/*.ts", "src/app/api/**/*.tsx", "src/app/api/**/*.js", "src/app/api/**/*.jsx"],
+      "rules": {
+        "no-console": "error"
+      }
+    }
+  ]
 }

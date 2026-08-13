@@ -55,7 +55,7 @@ const envSchema = z.object({
   NEXT_PUBLIC_POSTHOG_KEY: z.string().optional(),
 
   // ── App Config ────────────────────────────────────────────
-  NEXT_PUBLIC_APP_URL: z.string().url().default('http://localhost:3000'),
+  NEXT_PUBLIC_APP_URL: z.string().url(),
   CRON_SECRET: z.string().min(1, 'CRON_SECRET is required for cron job security'),
   HERMES_API_KEY: z.string().optional(),
 

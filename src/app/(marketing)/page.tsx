@@ -93,14 +93,14 @@ export default function LandingPage() {
     '@type': 'Product',
     name: 'Helmdash',
     description: seoT('description'),
-    image: 'https://helmdash.com/icon.png',
+    image: `${process.env.NEXT_PUBLIC_APP_URL}/icon.png`,
     brand: {
       '@type': 'Brand',
       name: 'Helmdash'
     },
     offers: {
       '@type': 'Offer',
-      url: 'https://helmdash.com/pricing',
+      url: `${process.env.NEXT_PUBLIC_APP_URL}/pricing`,
       priceCurrency: 'EUR',
       price: '19',
       availability: 'https://schema.org/InStock'

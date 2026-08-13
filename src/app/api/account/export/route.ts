@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { withAuth } from '@/lib/security';
 import AdmZip from 'adm-zip';
+import { logger } from '@/lib/logging/logger';
 
 async function handler(req: NextRequest, { userId }: { userId: string }) {
   if (req.method !== 'GET') {
@@ -58,7 +59,7 @@ async function handler(req: NextRequest, { userId }: { userId: string }) {
 
     return response;
   } catch (e: any) {
-    console.error('[Export Error]', e);
+    logger.error('[Export Error]', e, { userId });
     return NextResponse.json({ error: e.message }, { status: 500 });
   }
 }

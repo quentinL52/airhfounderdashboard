@@ -3,14 +3,16 @@
 import { useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useFounderStore } from '@/store/founder-store';
+import { GrowthHypothesisService } from '@/modules/gtm';
 import { Beaker, FlaskConical, CheckCircle2 } from 'lucide-react';
+
+const hypothesisService = new GrowthHypothesisService();
 
 export function HypothesesWidget() {
     const hypotheses = useFounderStore(s => s.hypotheses);
 
     const metrics = useMemo(() => {
-        const testing = hypotheses.filter((h) => h.status === 'testing').length;
-        const validated = hypotheses.filter((h) => h.status === 'validated').length;
+        const hypMetrics = hypothesisService.calculateMetrics(hypotheses);
 
         // Find last validated
         const sortedValidated = [...hypotheses]
@@ -19,7 +21,7 @@ export function HypothesesWidget() {
 
         const lastWin = sortedValidated.length > 0 ? sortedValidated[0].statement : null;
 
-        return { testing, validated, lastWin };
+        return { testing: hypMetrics.testing, validated: hypMetrics.validated, lastWin };
     }, [hypotheses]);
 
     return (

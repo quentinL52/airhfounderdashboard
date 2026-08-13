@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { withAuth } from '@/lib/security';
 import { executeComposioTool } from '@/lib/integrations/composio-client';
+import { logger } from '@/lib/logging/logger';
 
 async function handler(req: NextRequest, { userId }: { userId: string }) {
   if (req.method !== 'POST') {
@@ -22,7 +23,7 @@ async function handler(req: NextRequest, { userId }: { userId: string }) {
       const result = await executeComposioTool('notion_query_database', { database_id: databaseId }, userId);
       notionPages = result.data?.results || [];
     } catch (e: any) {
-      console.warn('[Notion Sync] Composio error:', e.message);
+      logger.warn('[Notion Sync] Composio error', { userId, message: e.message });
       // Fallback for MVP if not connected
       notionPages = [];
     }
@@ -78,7 +79,7 @@ async function handler(req: NextRequest, { userId }: { userId: string }) {
 
     return NextResponse.json({ success: true, count: importedCount });
   } catch (e: any) {
-    console.error('[Notion Import Error]', e);
+    logger.error('[Notion Import Error]', e, { userId });
     return NextResponse.json({ error: e.message }, { status: 500 });
   }
 }

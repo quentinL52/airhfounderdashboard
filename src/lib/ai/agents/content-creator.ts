@@ -16,7 +16,7 @@ export interface ContentSuggestion {
   cta: string;
   /** Score d'engagement estimé (1-10) */
   engagementScore: number;
-  /** Framework utilisé (AIDA, PAS, StoryBrand, etc.) */
+  /** Framework utilisé (AIDA, PAS, Hero-Guide, etc.) */
   framework: string;
 }
 
@@ -50,7 +50,7 @@ const contentCreatorAgent: AgentDefinition = {
     return `You are an elite Digital Marketing Expert and Copywriter specialized in early-stage startups.
 Your goal is to generate high-converting, engaging content for the founder based on their startup's context.
 
-Use proven copywriting frameworks such as AIDA (Attention, Interest, Desire, Action), PAS (Problem, Agitate, Solve), or StoryBrand.
+Use proven copywriting frameworks such as AIDA (Attention, Interest, Desire, Action), PAS (Problem, Agitate, Solve), or Hero-Guide.
 Ensure the content is tailored to the provided target audience and messaging.
 ${nicheBlock}${writingStyleBlock}
 

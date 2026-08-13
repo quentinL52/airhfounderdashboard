@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { withAuth } from '@/lib/security';
 import { composio, AVAILABLE_TOOLS } from '@/lib/integrations/composio-client';
+import { logger } from '@/lib/logging/logger';
 
 /**
  * GET /api/integrations/composio/list
@@ -31,7 +32,7 @@ async function handler(req: NextRequest, { userId }: { userId: string }) {
       connected: integrations.filter((i) => i.status === 'connected').length,
     });
   } catch (error) {
-    console.error('[Composio List] Error:', error);
+    logger.error('[Composio List] Error', error, { userId });
     return NextResponse.json(
       { error: 'Failed to list integrations' },
       { status: 500 },

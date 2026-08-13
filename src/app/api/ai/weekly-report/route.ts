@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
 import OpenAI from 'openai';
 import { withAuth } from '@/lib/security/with-auth';
+import { getWeeklyMoodSummary } from '@/services/journal.service';
+import { logger } from '@/lib/logging/logger';
 
 const openai = new OpenAI({
     apiKey: process.env.AI_API_KEY || '',
@@ -62,9 +64,7 @@ async function handler(req: Request, { userId }: { userId: string }) {
         const hypothesesTested = hypotheses.filter((h: any) => h.status !== 'draft').length;
         const hypothesesValidated = hypotheses.filter((h: any) => h.status === 'validated').length;
 
-        const averageMood = moods.length
-            ? (moods.reduce((sum: number, m: any) => sum + m.mood, 0) / moods.length).toFixed(1)
-            : 'N/A';
+        const moodSummary = await getWeeklyMoodSummary(user.id);
 
         const prompt = `
 Tu es un coach startup spécialisé dans l'analyse hebdomadaire des fondateurs.
@@ -75,9 +75,8 @@ Tu es un coach startup spécialisé dans l'analyse hebdomadaire des fondateurs.
 **Données du fondateur (ID: ${user.id}):**
 - Hypothèses: ${hypotheses.length} total, ${hypothesesTested} testées, ${hypothesesValidated} validées
 - Finances: ${totalRevenue}€ revenus, ${totalBurn}€ burn
-- Humeur moyenne (7 jours): ${averageMood}
+- ${moodSummary.summaryLine}
 - Streak actuel: ${streak} jours
-- Morning Pages (journal): ${moods.length} entrées cette semaine
 
 Analyse et retourne:
 1. **Focus Score** (1-10): Évalue la capacité du fondateur à se concentrer sur ce qui compte.
@@ -113,7 +112,7 @@ Réponds en JSON avec les clés: focusScore, validationScore, healthScore, insig
         });
 
     } catch (error) {
-        console.error('[Weekly Report] Error:', error);
+        logger.error('[Weekly Report] Error', error, { userId });
         return NextResponse.json(
             { error: 'Erreur lors de la génération du rapport hebdomadaire.' },
             { status: 500 }

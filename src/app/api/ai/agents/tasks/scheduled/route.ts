@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import { withAuth } from '@/lib/security';
+import { logger } from '@/lib/logging/logger';
 
 const prisma = new PrismaClient();
 
@@ -19,7 +20,7 @@ async function handler(req: NextRequest, { userId }: { userId: string }) {
 
     return NextResponse.json({ tasks });
   } catch (error) {
-    console.error('[Scheduled Tasks API] Error:', error);
+    logger.error('[Scheduled Tasks API] Error', error, { userId });
     return NextResponse.json(
       { error: 'Failed to fetch scheduled tasks' },
       { status: 500 },

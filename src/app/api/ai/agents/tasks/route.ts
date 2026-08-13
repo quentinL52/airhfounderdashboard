@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
 import { withAuth } from '@/lib/security';
-
-const prisma = new PrismaClient();
+import { logger } from '@/lib/logging/logger';
+import { agentRepository } from '@/modules/agent/infrastructure';
 
 /**
  * GET /api/ai/agents/tasks
@@ -17,19 +16,11 @@ async function handler(req: NextRequest, { userId }: { userId: string }) {
     const agentRole = url.searchParams.get('agentRole');
     const limit = Math.min(Number(url.searchParams.get('limit')) || 50, 100);
 
-    const where: Record<string, unknown> = { userId };
-    if (status) where.status = status;
-    if (agentRole) where.agentRole = agentRole;
-
-    const tasks = await prisma.agentTask.findMany({
-      where,
-      orderBy: { createdAt: 'desc' },
-      take: limit,
-    });
+    const tasks = await agentRepository.listTasks(userId, limit);
 
     return NextResponse.json({ tasks });
   } catch (error) {
-    console.error('[Agent Tasks API] Error:', error);
+    logger.error('[Agent Tasks API] Error', error, { userId });
     return NextResponse.json(
       { error: 'Failed to fetch agent tasks' },
       { status: 500 },

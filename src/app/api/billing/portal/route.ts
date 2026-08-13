@@ -1,33 +1,21 @@
-import { NextResponse } from 'next/server';
-import { stripe } from '@/lib/billing/stripe-client';
-import { prisma } from '@/lib/prisma';
-import { createClient } from '@/utils/supabase/server';
+import { NextRequest, NextResponse } from 'next/server';
+import { withAuth } from '@/lib/security/with-auth';
+import { createPortalSession } from '@/modules/billing';
+import { logger } from '@/lib/logging/logger';
 
-export async function POST(req: Request) {
+async function handler(req: NextRequest, { userId }: { userId: string }) {
   try {
-    const supabase = await createClient();
-    const { data: { user: authUser }, error } = await supabase.auth.getUser();
-    
-    if (error || !authUser?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const result = await createPortalSession(userId);
+
+    if (result.error) {
+      return NextResponse.json({ error: result.error }, { status: result.status || 400 });
     }
-    
-    const user = await prisma.user.findUnique({ where: { id: authUser.id } });
-    if (!user || !user.stripeCustomerId) {
-      return NextResponse.json({ error: 'User or Stripe customer not found' }, { status: 404 });
-    }
-    
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
-    
-    // Créer la session pour le Customer Portal
-    const portalSession = await stripe.billingPortal.sessions.create({
-      customer: user.stripeCustomerId,
-      return_url: `${baseUrl}/settings/billing`,
-    });
-    
-    return NextResponse.json({ url: portalSession.url });
+
+    return NextResponse.json({ url: result.url });
   } catch (error: any) {
-    console.error('Error creating portal session:', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    logger.error('Error creating portal session', error, { userId });
+    return NextResponse.json({ error: error.message || 'Portal creation failed' }, { status: 500 });
   }
 }
+
+export const POST = withAuth(handler);

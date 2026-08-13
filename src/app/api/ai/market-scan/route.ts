@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
 import { withAuth } from '@/lib/security';
+import { logger } from '@/lib/logging/logger';
 
 const apiKey = process.env.AI_API_KEY;
 const openai = apiKey ? new OpenAI({ apiKey }) : null;
@@ -23,7 +24,7 @@ async function tavilySearch(query: string) {
         const data = await response.json();
         return data.results || [];
     } catch (error) {
-        console.error('Tavily search failed:', error);
+        logger.error('Tavily search failed', error);
         return [];
     }
 }
@@ -116,7 +117,7 @@ ${JSON.stringify(allResults, null, 2)}`;
 
         return NextResponse.json({ signals });
     } catch (error) {
-        console.error('Market Scan Error:', error);
+        logger.error('Market Scan Error', error, { userId });
         return NextResponse.json(
             { error: 'Failed to scan market' },
             { status: 500 }

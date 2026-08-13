@@ -4,6 +4,7 @@ import { withAuth } from '@/lib/security';
 import { SynthesisSchema } from '@/lib/ai/onboarding-agent';
 import { GamificationService, QUESTS } from '@/services/gamification.service';
 import { z } from 'zod';
+import { logger } from '@/lib/logging/logger';
 
 const confirmSchema = z.object({
   synthesis: SynthesisSchema,
@@ -71,6 +72,20 @@ async function handler(req: NextRequest, { userId }: { userId: string }) {
           }
         });
 
+        // 4b. Dilemma Decision (if any)
+        if (synthesis.dilemma) {
+          await tx.decision.create({
+            data: {
+              userId,
+              title: "Dilemme Stratégique Initial",
+              context: synthesis.dilemma,
+              category: "structural",
+              options: ["À définir"],
+              status: "open"
+            }
+          });
+        }
+
         // 5. Update Session
         await tx.onboardingSession.update({
           where: { userId },
@@ -85,7 +100,10 @@ async function handler(req: NextRequest, { userId }: { userId: string }) {
         // 6. Update User
         await tx.user.update({
           where: { id: userId },
-          data: { onboardedAt: new Date() }
+          data: { 
+            onboardedAt: new Date(),
+            mvpTargetDate: synthesis.milestone.targetDate ? new Date(synthesis.milestone.targetDate) : null
+          }
         });
       });
 
@@ -94,7 +112,7 @@ async function handler(req: NextRequest, { userId }: { userId: string }) {
 
       return NextResponse.json({ ok: true });
     } catch (e: any) {
-      console.error('[API Onboarding Confirm] Error:', e);
+      logger.error('[API Onboarding Confirm] Error', e, { userId });
       return NextResponse.json({ error: e.message || 'Server error' }, { status: 500 });
     }
   }

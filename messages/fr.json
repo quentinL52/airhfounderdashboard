@@ -158,7 +158,15 @@
     "paymentEncrypted": "Paiement chiffré via Stripe (PCI DSS Level 1)",
     "invoiceByEmail": "Factures envoyées par email après chaque paiement",
     "upgradeAnytime": "Upgrade/downgrade à tout moment, sans frais",
-    "cancelAnytime": "Pas d'engagement. Annulation possible depuis votre portail Stripe"
+    "cancelAnytime": "Pas d'engagement. Annulation possible depuis votre portail Stripe",
+    "usageTitle": "Utilisation des actions IA",
+    "usageSubtitle": "Suivi de la consommation mensuelle",
+    "actionsUsed": "{used} sur {limit} actions utilisées",
+    "unlimitedByok": "Illimité (BYOK)",
+    "quotaExceeded": "Limite d'actions IA atteinte pour ce mois.",
+    "statusActive": "Actif",
+    "statusTrialing": "Essai",
+    "statusReadonly": "Lecture seule"
   },
   "cohort": {
     "founders": "Membre fondateur",
@@ -570,5 +578,47 @@
     "finish": "Ça me va, configurer mon tableau de bord",
     "consentWeekly": "M'envoyer un brief hebdo",
     "consentJournal": "Activer le journal d'humeur quotidien"
+  },
+  "gtm": {
+    "title": "Stratégie Go-To-Market",
+    "subtitle": "Positionnement, distribution et mesure de votre mise sur le marché.",
+    "steps": {
+      "positioning": "Positionnement & ICP",
+      "messaging": "Message",
+      "channels": "Canaux",
+      "launch": "Plan de lancement",
+      "measure": "Mesure & itération"
+    },
+    "icp": {
+      "title": "Gestionnaire de Profil Client Idéal (ICP)",
+      "subtitle": "Définissez votre segment cible, le rôle de l'acheteur, les douleurs clés et les alternatives concurrentielles.",
+      "nameLabel": "Nom du profil",
+      "buyerRoleLabel": "Rôle de l'acheteur",
+      "targetAudienceLabel": "Public cible & Description du segment",
+      "painPointsLabel": "Douleurs principales (1 par ligne)",
+      "benefitsLabel": "Bénéfices clés apportés (1 par ligne)",
+      "alternativesLabel": "Alternatives concurrentielles (1 par ligne)",
+      "completeness": "Complétude",
+      "suggestionsTitle": "Suggestions d'amélioration de l'ICP",
+      "saveButton": "Sauvegarder le profil ICP"
+    },
+    "board": {
+      "title": "Piliers de la Stratégie GTM",
+      "subtitle": "Alignement méthodologique du message, du positionnement et de la distribution.",
+      "pillarsCount": "{completed}/{total} Piliers",
+      "targetSegment": "Segment ICP Cible",
+      "compAlternatives": "Alternatives Concurrentielles",
+      "uniqueAttributes": "Attributs Uniques & Valeur",
+      "valueProp": "Proposition de Valeur / Accroche",
+      "problemStatement": "Problème Majeur Résolu",
+      "guideCredibility": "Guide & Crédibilité",
+      "primaryChannels": "Canaux Principaux",
+      "contentCadence": "Cadence de Contenu",
+      "atomicNetwork": "Stratégie Réseau Atomique",
+      "realMetrics": "Métrique d'Exécution Réelles",
+      "waitlistLeads": "Inscrits Waitlist",
+      "wonLeads": "Prospects CRM Gagnés",
+      "currentMrr": "MRR Actuel"
+    }
   }
 }
