@@ -1,0 +1,31 @@
+# Helmdash
+
+> The AI-powered cockpit for solo founders.
+
+Helmdash is a unified dashboard designed specifically for indie hackers, bootstrappers, and solo founders. It replaces the scattered combination of Notion pages, spreadsheets, and disconnected LLMs with a single "workspace" where context is preserved.
+
+## Core Value Proposition
+- **Unified Context:** Finances, roadmap, hypotheses, and competitive intelligence live in one place.
+- **Proactive AI Agent:** An integrated AI agent reads the founder's data, updates hypotheses, creates roadmap items, and helps make informed decisions without needing to be briefed on the context every time.
+- **Focus:** No more juggling 15 tabs to remember why a decision was made.
+
+## Key Features
+- **Notion & CSV Imports:** Import existing data in 2 minutes.
+- **Automated Logging:** The AI writes back to the dashboard, updating metrics and hypotheses.
+- **Gamification:** Features like XP, streaks, and quests to keep solo founders motivated.
+- **Pricing:** A BYOK (Bring Your Own Key) plan where founders can use their own OpenAI/Mistral keys without markup, or a Complete plan with AI included.
+
+## Target Audience
+- Indie Hackers
+- Micro-SaaS founders
+- Bootstrappers
+- Solopreneurs
+
+## Technical Details
+- URL: https://helmdash.app
+- Status: Waitlist / Launching September 15th
+
+## Contact & Links
+- Website: https://helmdash.app
+- Waitlist: https://helmdash.app/waitlist
+- Social: @helmdashapp

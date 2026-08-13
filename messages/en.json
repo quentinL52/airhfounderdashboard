@@ -1,7 +1,7 @@
 {
   "seo": {
-    "title": "Helmdash — The solo founder cockpit",
-    "description": "Helmdash is the AI-powered cockpit for solo founders. Unified dashboard for finances, roadmap, hypotheses & competitive intel. Join the waitlist.",
+    "title": "Track startup runway & manage metrics in one place",
+    "description": "Stop wasting 20 minutes rebuilding context before every decision. Helmdash replaces your Notion & spreadsheets with one AI-powered workspace for founders.",
     "faq": {
       "q1": "What is Helmdash?",
       "a1": "Helmdash is a unified dashboard designed for solo founders. It brings together your finances, hypotheses, roadmap, and competitive intelligence into a single interface.",
@@ -186,7 +186,7 @@
     "checkoutFailed": "Checkout failed. Please try again."
   },
   "notify": {
-    "heroTitle": "Take the helm of your startup",
+    "heroTitle": "Master your startup with Helmdash",
     "heroSubtitle": "The AI assistant that orchestrates your data, agents, and memory.",
     "getNotified": "Get notified when we launch.",
     "onList": "You are on the list!",
@@ -216,9 +216,9 @@
       "badge": "Cohort #4 · 12 seats left · starts Sept 15.",
       "title1": "Six tools open.",
       "title2": "Zero overview.",
-      "title3": "One helm to steer.",
-      "desc": "Helmdash brings your finances, hypotheses, roadmap, and competitive intel into a single cockpit, piloted by an agent that reads and writes directly to your data. Stop copy-pasting between Notion, spreadsheets, and your favorite LLM.",
-      "cta_main": "Take the helm →",
+      "title3": "One workspace to rule them all.",
+      "desc": "Helmdash brings your finances, hypotheses, roadmap, and competitive intel into a single workspace, piloted by an agent that reads and writes directly to your data. Stop copy-pasting between Notion, spreadsheets, and your favorite LLM.",
+      "cta_main": "Get Helmdash →",
       "cta_sec": "See the product",
       "disclaimer": "Notion & CSV import in 2 mins · Cancel anytime",
       "social": "They stopped juggling",
@@ -369,31 +369,31 @@
           "label": "Built for",
           "notion": "Teams & docs",
           "cowork": "General work",
-          "helm": "Solo founders, specifically"
+          "helmdash": "Solo founders, specifically"
         },
         {
           "label": "Your startup data",
           "notion": "Pages you structure yourself",
           "cowork": "Files & conversations",
-          "helm": "Pre-structured: runway, pipeline, hypotheses"
+          "helmdash": "Pre-structured: runway, pipeline, hypotheses"
         },
         {
           "label": "Knows your project",
           "notion": "You organize it",
           "cowork": "You bring the context",
-          "helm": "It's the whole point"
+          "helmdash": "It's the whole point"
         },
         {
           "label": "Momentum",
           "notion": "—",
           "cowork": "—",
-          "helm": "XP, streaks, quests"
+          "helmdash": "XP, streaks, quests"
         },
         {
           "label": "AI costs",
           "notion": "Add-on",
           "cowork": "Usage-based plans",
-          "helm": "Flat, predictable"
+          "helmdash": "Flat, predictable"
         }
       ],
       "footer": "Keep them all if you want. Helmdash imports their data and restores the thread."
@@ -453,7 +453,7 @@
       ]
     },
     "cta_final": {
-      "title": "Stop piecing things together. Take the helm.",
+      "title": "Stop piecing things together. Get Helmdash.",
       "desc": "First 100 users (Founder deal) · starts Sept 15. Import your tools in 2 minutes.",
       "btn_primary": "Reserve my seat →",
       "btn_secondary": "Review product"

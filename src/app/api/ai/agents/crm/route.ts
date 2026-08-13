@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { withAuth, withValidation } from '@/lib/security';
 import { executeAgent } from '@/lib/ai/agent-orchestrator';
 import type { ProviderName } from '@/lib/ai/provider-interface';
-import { logger } from '@/lib/logging/logger';
+import { assertQuota, recordAiAction } from '@/lib/billing/metering';
 
 // Ensure the agent is registered
 import '@/lib/ai/agents/relationship-manager';
