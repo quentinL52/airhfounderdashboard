@@ -56,16 +56,22 @@ export async function upstashRateLimit(key: string, rpm: number): Promise<RateLi
   const url = process.env.UPSTASH_REDIS_REST_URL;
   const token = process.env.UPSTASH_REDIS_REST_TOKEN;
 
-  if (!url || !token) {
-    console.warn('[withRateLimit] Upstash not configured, using memory store');
+  if (!url || !token || !url.startsWith('https://')) {
+    if (url && !url.startsWith('https://')) {
+      console.warn('[withRateLimit] UPSTASH_REDIS_REST_URL must start with https://, falling back to memory store');
+    }
     return memoryRateLimit(key, rpm);
   }
 
   try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 2000);
+
     // Use a simple INCR + EXPIRE approach via Upstash REST API
     // See: https://upstash.com/docs/redis/features/ratelimiting
     const response = await fetch(url, {
       method: 'POST',
+      signal: controller.signal,
       headers: {
         Authorization: `Bearer ${token}`,
         'Content-Type': 'application/json',
@@ -88,6 +94,7 @@ export async function upstashRateLimit(key: string, rpm: number): Promise<RateLi
         `, 1, key, rpm, 60]
       ),
     });
+    clearTimeout(timeoutId);
 
     if (!response.ok) {
       console.error('[withRateLimit] Upstash error:', response.status);
