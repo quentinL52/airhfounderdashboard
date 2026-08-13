@@ -1,7 +1,7 @@
 {
   "seo": {
-    "title": "Helmdash — Le poste de pilotage du solo founder",
-    "description": "Helmdash est le poste de pilotage IA des solo founders. Dashboard unifié : finances, roadmap, hypothèses & veille. Rejoignez la liste d'attente.",
+    "title": "Helmdash — Le dashboard IA pour solo founders",
+    "description": "Arrête de perdre 20 min à retrouver ton contexte avant chaque décision. Helmdash remplace tes tableurs et Notion par un workspace IA pour founders.",
     "faq": {
       "q1": "Qu'est-ce que Helmdash ?",
       "a1": "Helmdash est un tableau de bord unifié conçu pour les solo founders. Il rassemble vos finances, vos hypothèses, votre roadmap et votre veille concurrentielle dans une seule interface.",
@@ -186,7 +186,7 @@
     "checkoutFailed": "Échec du paiement. Veuillez réessayer."
   },
   "notify": {
-    "heroTitle": "Prenez le gouvernail de votre startup",
+    "heroTitle": "Maîtrisez votre startup avec Helmdash",
     "heroSubtitle": "L'assistant IA qui orchestre vos données, agents et mémoire.",
     "getNotified": "Soyez notifié au lancement.",
     "onList": "Vous êtes sur la liste !",
@@ -216,9 +216,9 @@
       "badge": "Cohorte #4 · 12 places restantes · démarrage 15 sept.",
       "title1": "Six outils ouverts.",
       "title2": "Zéro vue d'ensemble.",
-      "title3": "Une seule barre à tenir.",
-      "desc": "Helmdash réunit tes finances, tes hypothèses, ta roadmap et ta veille dans un seul poste de pilotage, piloté par un agent qui lit et écrit directement dans tes données. Fini le copier-coller entre Notion, tableurs et ton LLM préféré.",
-      "cta_main": "Prendre la barre →",
+      "title3": "Un seul workspace pour tout gérer.",
+      "desc": "Helmdash réunit tes finances, tes hypothèses, ta roadmap et ta veille dans un seul workspace, piloté par un agent qui lit et écrit directement dans tes données. Fini le copier-coller entre Notion, tableurs et ton LLM préféré.",
+      "cta_main": "Essayer Helmdash →",
       "cta_sec": "Voir le produit",
       "disclaimer": "Import Notion & CSV en 2 min · Résiliable à tout moment",
       "social": "Ils ont arrêté de jongler",
@@ -369,31 +369,31 @@
           "label": "Pensé pour",
           "notion": "Équipes & docs",
           "cowork": "Travail général",
-          "helm": "Solo founders, spécifiquement"
+          "helmdash": "Solo founders, spécifiquement"
         },
         {
           "label": "Données startup",
           "notion": "Pages à structurer soi-même",
           "cowork": "Fichiers & conversations",
-          "helm": "Pré-structurées : runway, pipeline, hypothèses"
+          "helmdash": "Pré-structurées : runway, pipeline, hypothèses"
         },
         {
           "label": "Connaît le projet",
           "notion": "Tu l'organises",
           "cowork": "Tu apportes le contexte",
-          "helm": "C'est tout l'intérêt"
+          "helmdash": "C'est tout l'intérêt"
         },
         {
           "label": "Momentum",
           "notion": "—",
           "cowork": "—",
-          "helm": "XP, streaks, quêtes"
+          "helmdash": "XP, streaks, quêtes"
         },
         {
           "label": "Coûts IA",
           "notion": "En supplément",
           "cowork": "Plans à l'usage",
-          "helm": "Fixe, prévisible"
+          "helmdash": "Fixe, prévisible"
         }
       ],
       "footer": "Garde-les tous si tu veux. Helmdash importe leurs données et redonne le fil."
@@ -453,13 +453,13 @@
       ]
     },
     "cta_final": {
-      "title": "Arrête de recoller les morceaux. Prends la barre.",
+      "title": "Arrête de recoller les morceaux. Adopte Helmdash.",
       "desc": "Les 100 premiers (Founder deal) · démarrage le 15 septembre. Import de tes outils en 2 minutes.",
       "btn_primary": "Réserver ma place →",
       "btn_secondary": "Revoir le produit"
     },
     "footer": {
-      "desc": "Le poste de pilotage du solo founder. Un dashboard, un agent, zéro onglet en trop.",
+      "desc": "Le dashboard IA du solo founder. Un workspace, un agent, zéro onglet en trop.",
       "cols": [
         {
           "head": "PRODUIT",

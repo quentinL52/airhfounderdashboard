@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import { withAuth } from '@/lib/security';
-import { logger } from '@/lib/logging/logger';
+import { assertQuota, recordAiAction } from '@/lib/billing/metering';
 
 const prisma = new PrismaClient();
 
@@ -13,6 +13,15 @@ const prisma = new PrismaClient();
  */
 async function handler(req: NextRequest, { userId }: { userId: string }) {
   try {
+        try {
+            await assertQuota(userId);
+        } catch (e: any) {
+            if (e.code === 'quota_reached') {
+                return NextResponse.json({ code: 'quota_reached', error: 'AI actions limit reached for this month.' }, { status: 403 });
+            }
+            throw e;
+        }
+
     const tasks = await prisma.scheduledTask.findMany({
       where: { userId },
       orderBy: { createdAt: 'desc' },

@@ -3,14 +3,14 @@ import { test, expect } from '@playwright/test';
 test.describe('Helmdash Core Journeys (12 Parcours)', () => {
   
   // 1. Visiteur : Landing Page & Waitlist
-  test('Parcours 1 : Landing Page s\'affiche correctement', async ({ page }) => {
+  test("Parcours 1 : Landing Page s'affiche correctement", async ({ page }) => {
     await page.goto('/');
     await expect(page.locator('text=poste de pilotage').first()).toBeVisible();
     await expect(page.locator('button:has-text("Join the waitlist")').first()).toBeVisible();
   });
 
   // 2. Authentification
-  test('Parcours 2 : Page de connexion s\'affiche', async ({ page }) => {
+  test("Parcours 2 : Page de connexion s'affiche", async ({ page }) => {
     await page.goto('/auth');
     await expect(page.locator('text=Se connecter')).toBeVisible();
   });

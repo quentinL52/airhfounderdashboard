@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { withAuth } from '@/lib/security';
-import { logger } from '@/lib/logging/logger';
-import { agentRepository } from '@/modules/agent/infrastructure';
+import { assertQuota, recordAiAction } from '@/lib/billing/metering';
+
+const prisma = new PrismaClient();
 
 /**
  * GET /api/ai/agents/tasks
@@ -11,6 +12,15 @@ import { agentRepository } from '@/modules/agent/infrastructure';
  */
 async function handler(req: NextRequest, { userId }: { userId: string }) {
   try {
+        try {
+            await assertQuota(userId);
+        } catch (e: any) {
+            if (e.code === 'quota_reached') {
+                return NextResponse.json({ code: 'quota_reached', error: 'AI actions limit reached for this month.' }, { status: 403 });
+            }
+            throw e;
+        }
+
     const url = new URL(req.url);
     const status = url.searchParams.get('status');
     const agentRole = url.searchParams.get('agentRole');

@@ -81,11 +81,11 @@ export default function LandingPage() {
   ];
 
   const COMPARISON_ROWS = [
-    { label: t('comparison.rows.0.label'), notion: t('comparison.rows.0.notion'), cowork: t('comparison.rows.0.cowork'), helm: t('comparison.rows.0.helm') },
-    { label: t('comparison.rows.1.label'), notion: t('comparison.rows.1.notion'), cowork: t('comparison.rows.1.cowork'), helm: t('comparison.rows.1.helm') },
-    { label: t('comparison.rows.2.label'), notion: t('comparison.rows.2.notion'), cowork: t('comparison.rows.2.cowork'), helm: t('comparison.rows.2.helm') },
-    { label: t('comparison.rows.3.label'), notion: t('comparison.rows.3.notion'), cowork: t('comparison.rows.3.cowork'), helm: t('comparison.rows.3.helm') },
-    { label: t('comparison.rows.4.label'), notion: t('comparison.rows.4.notion'), cowork: t('comparison.rows.4.cowork'), helm: t('comparison.rows.4.helm') },
+    { label: t('comparison.rows.0.label'), notion: t('comparison.rows.0.notion'), cowork: t('comparison.rows.0.cowork'), helmdash: t('comparison.rows.0.helmdash') },
+    { label: t('comparison.rows.1.label'), notion: t('comparison.rows.1.notion'), cowork: t('comparison.rows.1.cowork'), helmdash: t('comparison.rows.1.helmdash') },
+    { label: t('comparison.rows.2.label'), notion: t('comparison.rows.2.notion'), cowork: t('comparison.rows.2.cowork'), helmdash: t('comparison.rows.2.helmdash') },
+    { label: t('comparison.rows.3.label'), notion: t('comparison.rows.3.notion'), cowork: t('comparison.rows.3.cowork'), helmdash: t('comparison.rows.3.helmdash') },
+    { label: t('comparison.rows.4.label'), notion: t('comparison.rows.4.notion'), cowork: t('comparison.rows.4.cowork'), helmdash: t('comparison.rows.4.helmdash') },
   ];
 
   const productSchema = {
@@ -464,7 +464,7 @@ export default function LandingPage() {
                 {COMPARISON_ROWS.map(r => (
                   <div key={r.label} className="h-[52px] flex items-center justify-start px-3 text-[13px] font-semibold text-[#0E1B2E] font-mono gap-2 leading-tight">
                     <Check size={16} className="text-[#F0522E] shrink-0" />
-                    {r.helm}
+                    {r.helmdash}
                   </div>
                 ))}
               </div>
@@ -484,7 +484,7 @@ export default function LandingPage() {
                     <Check size={18} className="text-[#F0522E] mt-0.5 shrink-0" />
                     <div>
                       <div className="text-[11px] font-mono text-[#8a95a6] uppercase tracking-wider mb-0.5">{r.label}</div>
-                      <div className="text-[14px] font-medium text-[#0E1B2E]">{r.helm}</div>
+                      <div className="text-[14px] font-medium text-[hsl(215,52%,12%)]">{r.helmdash}</div>
                     </div>
                   </div>
                 ))}

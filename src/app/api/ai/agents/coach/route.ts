@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { createApiEndpoint, InternalServerError } from '@/lib/api/create-api-endpoint';
 import { executeAgent } from '@/lib/ai/agent-orchestrator';
 import type { ProviderName } from '@/lib/ai/provider-interface';
+import { assertQuota, recordAiAction } from '@/lib/billing/metering';
 
 // Ensure the agent is registered by importing it
 import '@/lib/ai/agents/founder-coach';

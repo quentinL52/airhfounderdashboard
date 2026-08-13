@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
 import { withAuth } from '@/lib/security';
-import { logger } from '@/lib/logging/logger';
+import { assertQuota, recordAiAction } from '@/lib/billing/metering';
 
 const apiKey = process.env.AI_API_KEY;
 const openai = apiKey ? new OpenAI({ apiKey }) : null;
@@ -35,6 +35,15 @@ async function handler(req: NextRequest, { userId }: { userId: string }) {
     }
 
     try {
+        try {
+            await assertQuota(userId);
+        } catch (e: any) {
+            if (e.code === 'quota_reached') {
+                return NextResponse.json({ code: 'quota_reached', error: 'AI actions limit reached for this month.' }, { status: 403 });
+            }
+            throw e;
+        }
+
         const { url, language = 'fr' } = await req.json();
 
         if (!url) {
@@ -94,6 +103,7 @@ Write descriptions in ${language === 'fr' ? 'French' : 'English'}.`;
             response_format: { type: 'json_object' },
             temperature: 0.3,
         });
+        await recordAiAction(userId, 'api', response.usage?.total_tokens || 0, 'gpt-4o').catch(console.error);
 
         const content = response.choices[0].message.content;
         const profile = JSON.parse(content || '{}');

@@ -9,11 +9,17 @@ import { logger } from '@/lib/logging/logger';
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 const waitlistSchema = z.object({
-  email: z.string().email('Email invalide').transform(e => e.toLowerCase().trim()),
-  website: z.string().optional(), // Honeypot field
-  timestamp: z.number().optional(),
-  signature: z.string().optional(),
+  email: z.string().email('Email invalide'),
+  _hp_email: z.string().optional(), // Honeypot field
 });
+
+const DISPOSABLE_DOMAINS = [
+  'mailinator.com', 'yopmail.com', '10minutemail.com', 'temp-mail.org',
+  'guerrillamail.com', 'trashmail.com', 'throwawaymail.com', 'tempmail.com'
+];
+
+// In-memory rate limiting map for basic protection
+const ipRequestMap = new Map<string, { count: number, timestamp: number }>();
 
 export async function POST(req: NextRequest) {
   try {
@@ -27,11 +33,17 @@ export async function POST(req: NextRequest) {
 
     const now = Date.now();
     const body = await req.json();
-    const { email, website, timestamp, signature } = waitlistSchema.parse(body);
+    const { email, _hp_email } = waitlistSchema.parse(body);
 
-    // Honeypot check
-    if (website) {
-      return NextResponse.json({ error: 'Invalid request' }, { status: 400 });
+    // Honeypot check: ignore silently to fool bots
+    if (_hp_email) {
+      return NextResponse.json({ success: true, entry: { status: 'pending' }, position: null });
+    }
+
+    // Disposable email check
+    const domain = email.split('@')[1]?.toLowerCase();
+    if (domain && DISPOSABLE_DOMAINS.includes(domain)) {
+      return NextResponse.json({ error: 'Les adresses email jetables ne sont pas autorisées.' }, { status: 400 });
     }
 
     // Signature/Timestamp check (fail-open)
@@ -79,7 +91,15 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    return NextResponse.json({ success: true, entry });
+    const position = await prisma.waitlist.count({
+      where: {
+        createdAt: {
+          lt: entry.createdAt
+        }
+      }
+    }) + 1;
+
+    return NextResponse.json({ success: true, entry, position });
   } catch (error) {
     logger.error('Waitlist error', error);
     if (error instanceof z.ZodError) {

@@ -2,8 +2,7 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
 import OpenAI from 'openai';
 import { withAuth } from '@/lib/security/with-auth';
-import { getWeeklyMoodSummary } from '@/services/journal.service';
-import { logger } from '@/lib/logging/logger';
+import { assertQuota, recordAiAction } from '@/lib/billing/metering';
 
 const openai = new OpenAI({
     apiKey: process.env.AI_API_KEY || '',
@@ -13,6 +12,15 @@ export const maxDuration = 60;
 
 async function handler(req: Request, { userId }: { userId: string }) {
     try {
+        try {
+            await assertQuota(userId);
+        } catch (e: any) {
+            if (e.code === 'quota_reached') {
+                return NextResponse.json({ code: 'quota_reached', error: 'AI actions limit reached for this month.' }, { status: 403 });
+            }
+            throw e;
+        }
+
         const supabase = await createClient();
         const { data: { user } } = await supabase.auth.getUser();
 
@@ -98,6 +106,7 @@ Réponds en JSON avec les clés: focusScore, validationScore, healthScore, insig
             ],
             response_format: { type: 'json_object' },
         });
+        await recordAiAction(userId, 'api', completion.usage?.total_tokens || 0, 'gpt-4o').catch(console.error);
 
         const analysis = completion.choices[0]?.message?.content;
 

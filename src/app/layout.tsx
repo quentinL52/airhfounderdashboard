@@ -100,19 +100,31 @@ export default async function RootLayout({
     url: appUrl,
   };
 
-  const softwareApplicationSchema = {
+  const tFaq = await getTranslations('seo.faq');
+  const faqSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: [1, 2, 3, 4, 5, 6, 7].map(num => ({
+      '@type': 'Question',
+      name: tFaq(`q${num}`),
+      acceptedAnswer: { '@type': 'Answer', text: tFaq(`a${num}`) }
+    }))
+  };
+
+  const softwareSchema = {
     '@context': 'https://schema.org',
     '@type': 'SoftwareApplication',
     name: 'Helmdash',
     applicationCategory: 'BusinessApplication',
-    operatingSystem: 'Web',
-    url: appUrl,
+    operatingSystem: 'Any',
     offers: {
       '@type': 'Offer',
-      price: '15.00',
-      priceCurrency: 'EUR'
+      price: '0',
+      priceCurrency: 'USD'
     }
   };
+
+
 
   return (
     <html lang={locale} suppressHydrationWarning>
@@ -120,14 +132,18 @@ export default async function RootLayout({
       <body className={`${ibmPlexMono.variable} ${ibmPlexSans.variable} font-sans antialiased`}>
         <JsonLd data={organizationSchema} />
         <JsonLd data={websiteSchema} />
-        <JsonLd data={softwareApplicationSchema} />
-        <NextIntlClientProvider messages={messages}>
+        <JsonLd data={faqSchema} />
+        <JsonLd data={softwareSchema} />
+      </head>
+      <body className={`${ibmPlexSans.variable} ${ibmPlexMono.variable} font-sans min-h-screen bg-background antialiased selection:bg-primary/20 selection:text-primary`}>
+        <NextIntlClientProvider locale={locale} messages={messages}>
           <ThemeProvider
             attribute="class"
             defaultTheme="dark"
             enableSystem={false}
             disableTransitionOnChange
           >
+
             <StoreSync />
             {children}
             <CookieBanner />
