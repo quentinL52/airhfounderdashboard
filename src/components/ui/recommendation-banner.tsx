@@ -29,6 +29,9 @@ export function RecommendationBanner({
     className
 }: RecommendationBannerProps) {
     const language = useFounderStore(s => s.language) || 'fr';
+    const [isVisible, setIsVisible] = useState(true);
+    const [appliedItems, setAppliedItems] = useState<Set<number>>(new Set());
+
     const t = translations[language] || translations['fr'];
 
     if (!t || !t.strategicRecommendations) return null;
@@ -43,9 +46,6 @@ export function RecommendationBanner({
 
     const displayTitle = title || (t.strategicRecommendations.bannerTitle ? t.strategicRecommendations.bannerTitle[transKey] : title);
     const displayDescription = description || (t.strategicRecommendations.bannerDesc ? t.strategicRecommendations.bannerDesc[transKey] : description);
-
-    const [isVisible, setIsVisible] = useState(true);
-    const [appliedItems, setAppliedItems] = useState<Set<number>>(new Set());
 
     if (!isVisible || !recommendations || recommendations.length === 0) return null;
 

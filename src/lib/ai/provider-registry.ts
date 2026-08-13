@@ -92,18 +92,12 @@ export function getProviderRegistry(): ProviderRegistry {
  * Auto-registers all built-in provider adapters.
  * Called once during singleton initialisation.
  */
-function registerBuiltInProviders(registry: ProviderRegistry): void {
-  /* Dynamic imports avoid circular dependencies and keep the registry lean.
-     Each adapter is loaded synchronously since they are local modules. */
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const { OpenAIAdapter } = require('./adapters/openai-adapter');
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const { AnthropicAdapter } = require('./adapters/anthropic-adapter');
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const { GeminiAdapter } = require('./adapters/gemini-adapter');
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const { MistralAdapter } = require('./adapters/mistral-adapter');
+import { OpenAIAdapter } from './adapters/openai-adapter';
+import { AnthropicAdapter } from './adapters/anthropic-adapter';
+import { GeminiAdapter } from './adapters/gemini-adapter';
+import { MistralAdapter } from './adapters/mistral-adapter';
 
+function registerBuiltInProviders(registry: ProviderRegistry): void {
   registry.register(new OpenAIAdapter());
   registry.register(new AnthropicAdapter());
   registry.register(new GeminiAdapter());

@@ -42,6 +42,7 @@
   },
   "nav": {
     "dashboard": "Dashboard",
+    "decisions": "Decisions",
     "hypotheses": "Hypotheses",
     "finances": "Finances",
     "roadmap": "Roadmap",
