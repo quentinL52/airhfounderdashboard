@@ -48,6 +48,7 @@ const handler = withAuth(
         const result = await executeAgent(
           'content-creator',
           {
+            userId,
             storeData: body.context as Record<string, unknown>,
             userInstruction: body.context.userInstruction,
             locale: body.locale || 'fr',
@@ -58,13 +59,13 @@ const handler = withAuth(
           },
         );
 
-        if (result.status === 'error') {
+        if (result.status === 'failed') {
           return NextResponse.json(result, { status: 500 });
         }
 
         return NextResponse.json(result);
       } catch (error) {
-        console.error('[Content API Route] Error:', error);
+        logger.error('[Content API Route] Error', error, { userId });
         return NextResponse.json(
           { error: 'Internal server error while executing content creator.' },
           { status: 500 },

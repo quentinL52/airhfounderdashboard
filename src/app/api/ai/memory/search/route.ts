@@ -1,7 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { z } from 'zod';
-import { withAuth, withValidation } from '@/lib/security';
+import { createApiEndpoint, ForbiddenError } from '@/lib/api/create-api-endpoint';
 import { memory } from '@/lib/ai/memory/obsidian-memory';
+import { prisma } from '@/lib/prisma';
 
 const searchSchema = z.object({
   query: z.string().min(1).describe('Recherche textuelle ou question'),
@@ -15,28 +16,23 @@ const searchSchema = z.object({
  * Recherche sémantique dans la mémoire vectorielle de l'utilisateur.
  * Retourne les notes les plus pertinentes avec leur score de similarité.
  */
-const handler = withAuth(
-  withValidation(searchSchema)(
-    async (
-      req: NextRequest,
-      { userId, body }: { userId: string; body: z.infer<typeof searchSchema> },
-    ) => {
-      try {
-        const results = await memory.search(userId, body.query, {
-          limit: body.limit,
-          threshold: body.threshold,
-        });
+export const POST = createApiEndpoint({
+  bodySchema: searchSchema,
+  async handler(req, { userId, body }) {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { role: true },
+    });
 
-        return NextResponse.json({ results });
-      } catch (error) {
-        console.error('[Memory Search API] Error:', error);
-        return NextResponse.json(
-          { error: 'Failed to search memory' },
-          { status: 500 },
-        );
-      }
-    },
-  ),
-);
+    if (user?.role !== 'admin') {
+      throw new ForbiddenError('Forbidden');
+    }
 
-export const POST = handler;
+    const results = await memory.search(userId, body.query, {
+      limit: body.limit,
+      threshold: body.threshold,
+    });
+
+    return NextResponse.json({ results });
+  },
+});

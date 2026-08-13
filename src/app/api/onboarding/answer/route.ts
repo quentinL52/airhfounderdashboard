@@ -3,6 +3,8 @@ import { prisma } from '@/lib/prisma';
 import { withAuth } from '@/lib/security';
 import { z } from 'zod';
 import { generateOnboardingAck, checkBudget } from '@/lib/ai/onboarding-agent';
+import { getFollowUp } from '@/lib/onboarding/follow-ups';
+import { logger } from '@/lib/logging/logger';
 
 const answerSchema = z.object({
   step: z.number().int().min(1).max(6),
@@ -18,7 +20,26 @@ async function handler(req: NextRequest, { userId }: { userId: string }) {
       const session = await prisma.onboardingSession.findUnique({ where: { userId } });
       if (!session) return NextResponse.json({ error: 'Session not found' }, { status: 404 });
 
-      const answers = (session.answers as Record<string, string>) || {};
+      const answers = (session.answers as Record<string, any>) || {};
+      const followUpsCount = typeof answers['_followUpsCount'] === 'number' ? answers['_followUpsCount'] : 0;
+      
+      // Check for deterministic follow-ups
+      const followUpQuestion = getFollowUp(step, answer, followUpsCount);
+      if (followUpQuestion) {
+        answers['_followUpsCount'] = followUpsCount + 1;
+        
+        await prisma.onboardingSession.update({
+          where: { userId },
+          data: { answers }
+        });
+        
+        return NextResponse.json({ 
+          ack: followUpQuestion, 
+          nextStep: session.currentStep, 
+          session 
+        });
+      }
+
       answers[`q${step}`] = answer;
 
       let ack = "Got it. Let's move on.";
@@ -30,7 +51,7 @@ async function handler(req: NextRequest, { userId }: { userId: string }) {
           try {
             ack = await generateOnboardingAck(step, answer, userId);
           } catch (e) {
-            console.error("[API Onboarding Answer] LLM ACK failed", e);
+            logger.error('[API Onboarding Answer] LLM ACK failed', e, { userId });
           }
         }
       } else if (!useLlmAck) {
@@ -60,7 +81,7 @@ async function handler(req: NextRequest, { userId }: { userId: string }) {
 
       return NextResponse.json({ ack, nextStep: updatedSession.currentStep, session: updatedSession });
     } catch (e: any) {
-      console.error('[API Onboarding Answer] Error:', e);
+      logger.error('[API Onboarding Answer] Error', e, { userId });
       return NextResponse.json({ error: e.message || 'Server error' }, { status: 500 });
     }
   }

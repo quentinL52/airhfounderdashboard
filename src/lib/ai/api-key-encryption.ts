@@ -87,12 +87,37 @@ export interface DecryptedAiSettings {
 }
 
 export async function decryptAiSettings(
-  encryptedSettings: { provider: string; encryptedApiKey: string; modelsConfig?: string },
+  encryptedSettings: { provider?: string | null; apiKey?: string | null; encryptedApiKey?: string | null; modelsConfig?: any } | null,
   userId: string
 ): Promise<DecryptedAiSettings> {
+  // Fallback to system defaults if user hasn't configured BYOK
+  if (!encryptedSettings) {
+    return {
+      provider: 'openai',
+      apiKey: process.env.AI_API_KEY || (process.env.OPENAI_API_KEY !== 'TA_CLE_ICI' ? process.env.OPENAI_API_KEY : undefined) || '',
+      modelsConfig: undefined,
+    };
+  }
+
+  const rawKey = encryptedSettings.encryptedApiKey || encryptedSettings.apiKey || '';
+  const provider = encryptedSettings.provider || 'openai';
+  let modelsConfigObj: Record<string, unknown> | undefined = undefined;
+  
+  if (encryptedSettings.modelsConfig) {
+    if (typeof encryptedSettings.modelsConfig === 'string') {
+      try {
+        modelsConfigObj = JSON.parse(encryptedSettings.modelsConfig);
+      } catch {
+        modelsConfigObj = undefined;
+      }
+    } else if (typeof encryptedSettings.modelsConfig === 'object') {
+      modelsConfigObj = encryptedSettings.modelsConfig as Record<string, unknown>;
+    }
+  }
+
   return {
-    provider: encryptedSettings.provider,
-    apiKey: await decryptApiKey(encryptedSettings.encryptedApiKey, userId),
-    modelsConfig: encryptedSettings.modelsConfig ? JSON.parse(encryptedSettings.modelsConfig) : undefined,
+    provider,
+    apiKey: rawKey ? await decryptApiKey(rawKey, userId) : '',
+    modelsConfig: modelsConfigObj,
   };
 }

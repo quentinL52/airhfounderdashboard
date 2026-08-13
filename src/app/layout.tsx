@@ -1,6 +1,8 @@
 import { Toaster } from "@/components/ui/toaster";
 import { StoreSync } from '@/components/store-sync';
 import { CookieBanner } from '@/components/cookie-banner';
+import { Analytics } from '@vercel/analytics/next';
+import { env } from '@/lib/env';
 import "./globals.css";
 import type { Metadata } from 'next';
 import { IBM_Plex_Mono, IBM_Plex_Sans } from 'next/font/google';
@@ -27,7 +29,7 @@ import { JsonLd } from '@/components/seo/JsonLd';
 export async function generateMetadata() {
   const t = await getTranslations('seo');
   const locale = await getLocale();
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://helmdash.com';
+  const appUrl = env.NEXT_PUBLIC_APP_URL;
   
   return {
     metadataBase: new URL(appUrl),
@@ -77,7 +79,7 @@ export default async function RootLayout({
   const locale = await getLocale();
   const messages = await getMessages();
 
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://helmdash.com';
+  const appUrl = env.NEXT_PUBLIC_APP_URL;
   
   const organizationSchema = {
     '@context': 'https://schema.org',
@@ -126,7 +128,8 @@ export default async function RootLayout({
 
   return (
     <html lang={locale} suppressHydrationWarning>
-      <head>
+      <head />
+      <body className={`${ibmPlexMono.variable} ${ibmPlexSans.variable} font-sans antialiased`}>
         <JsonLd data={organizationSchema} />
         <JsonLd data={websiteSchema} />
         <JsonLd data={faqSchema} />
@@ -145,6 +148,7 @@ export default async function RootLayout({
             {children}
             <CookieBanner />
             <Toaster />
+            <Analytics />
           </ThemeProvider>
         </NextIntlClientProvider>
       </body>

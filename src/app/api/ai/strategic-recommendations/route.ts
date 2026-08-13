@@ -29,7 +29,7 @@ async function tavilySearch(query: string) {
         const data = await response.json();
         return data.results || [];
     } catch (error) {
-        console.error("Tavily search failed", error);
+        logger.error("Tavily search failed", error);
         return [];
     }
 }
@@ -139,7 +139,7 @@ async function handler(req: NextRequest, { userId }: { userId: string }) {
             for (const toolCall of toolCalls) {
                 if ((toolCall as any).function.name === 'search_web') {
                     const args = JSON.parse((toolCall as any).function.arguments);
-                    console.log(`Executing search: ${args.query}`);
+                    logger.info(`Executing search: ${args.query}`, { userId });
                     const searchResults = await tavilySearch(args.query);
 
                     messages.push({
@@ -166,7 +166,7 @@ async function handler(req: NextRequest, { userId }: { userId: string }) {
         }
 
     } catch (error) {
-        console.error('AI Strategy Error:', error);
+        logger.error('AI Strategy Error', error, { userId });
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
     }
 }

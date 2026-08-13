@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { z } from 'zod';
-import { withAuth, withValidation } from '@/lib/security';
+import { createApiEndpoint } from '@/lib/api/create-api-endpoint';
 
 const PROVIDERS = ['openai', 'anthropic', 'google', 'mistral'] as const;
 
@@ -13,17 +13,33 @@ const upsertSchema = z.object({
 });
 
 /**
+ * GET /api/settings/ai-keys
+ *
+ * Recupère la liste des fournisseurs IA configurés pour l'utilisateur.
+ */
+export const GET = createApiEndpoint({
+  async handler(req, { userId }) {
+    const keys = await prisma.aiSettings.findMany({
+      where: { userId },
+      select: { provider: true },
+    });
+    return NextResponse.json({
+      ok: true,
+      configuredProviders: keys.map((k) => k.provider),
+    });
+  },
+});
+
+/**
  * PUT /api/settings/ai-keys
  *
  * Enregistre ou met à jour une clé API pour un fournisseur IA.
  * La clé est chiffrée via AES-256-GCM avant stockage (api-key-encryption.ts).
  * Ne retourne JAMAIS la clé en clair dans la réponse.
  */
-async function handler(
-  req: NextRequest,
-  { userId, body }: { userId: string; body: z.infer<typeof upsertSchema> },
-) {
-  try {
+export const PUT = createApiEndpoint({
+  bodySchema: upsertSchema,
+  async handler(req, { userId, body }) {
     const { encryptApiKey } = await import('@/lib/ai/api-key-encryption');
     const encryptedApiKey = await encryptApiKey(body.apiKey, userId);
 
@@ -52,32 +68,5 @@ async function handler(
       provider: body.provider,
       message: `API key for ${body.provider} configured and encrypted.`,
     });
-  } catch (error) {
-    console.error('[Settings AI Keys] Error storing key:', error);
-    return NextResponse.json(
-      { error: 'Failed to store API key' },
-      { status: 500 },
-    );
-  }
-}
-
-export const GET = withAuth(async (req: NextRequest, { userId }: { userId: string }) => {
-  try {
-    const keys = await prisma.aiSettings.findMany({
-      where: { userId },
-      select: { provider: true },
-    });
-    return NextResponse.json({
-      ok: true,
-      configuredProviders: keys.map(k => k.provider),
-    });
-  } catch (error) {
-    console.error('[Settings AI Keys] Error fetching keys:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch API keys status' },
-      { status: 500 },
-    );
-  }
+  },
 });
-
-export const PUT = withAuth(withValidation(upsertSchema)(handler));

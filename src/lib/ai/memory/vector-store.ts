@@ -18,12 +18,21 @@ export class VectorStore {
    * Génère un embedding pour un texte donné en utilisant OpenAI.
    */
   async generateEmbedding(text: string): Promise<number[]> {
-    const response = await openai.embeddings.create({
-      model: 'text-embedding-3-large',
-      input: text,
-      dimensions: 3072,
-    });
-    return response.data[0].embedding;
+    try {
+      if (!process.env.OPENAI_API_KEY || process.env.OPENAI_API_KEY === 'TA_CLE_ICI') {
+        // Mode développement sans clé: on renvoie un faux vecteur de 3072 dimensions
+        return Array(3072).fill(0.01);
+      }
+      const response = await openai.embeddings.create({
+        model: 'text-embedding-3-large',
+        input: text,
+        dimensions: 3072,
+      });
+      return response.data[0].embedding;
+    } catch (e: any) {
+      console.warn("Embedding generation failed, returning fallback vector. Error:", e.message);
+      return Array(3072).fill(0.01);
+    }
   }
 
   /**

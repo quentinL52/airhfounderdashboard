@@ -1,11 +1,19 @@
-import { Composio } from '@composio/core';
+let composioInstance: any = null;
 
-if (!process.env.COMPOSIO_API_KEY) {
-  console.warn('COMPOSIO_API_KEY is missing');
+export async function getComposioClient() {
+  if (!composioInstance) {
+    const { Composio } = await import('@composio/core');
+    composioInstance = new Composio({
+      apiKey: process.env.COMPOSIO_API_KEY || 'dummy_key_to_bypass_build_error',
+    });
+  }
+  return composioInstance;
 }
 
-export const composio = new Composio({ 
-  apiKey: process.env.COMPOSIO_API_KEY || 'dummy_key_to_bypass_build_error' 
+export const composio = new Proxy({} as any, {
+  get(_target, prop) {
+    throw new Error(`Direct composio.${String(prop)} access deprecated. Use getComposioClient() or async helpers.`);
+  },
 });
 
 export const AVAILABLE_TOOLS = {
@@ -50,9 +58,9 @@ export const AVAILABLE_TOOLS = {
 };
 
 export async function getUserConnection(userId: string, appName: string) {
-  // Try to find the user connection
   try {
-    const connection = await composio.connectedAccounts.get(`${userId}-${appName}`);
+    const client = await getComposioClient();
+    const connection = await client.connectedAccounts.get(`${userId}-${appName}`);
     return connection;
   } catch (error) {
     return null;
@@ -67,8 +75,8 @@ export async function executeComposioTool(toolName: string, params: any, userId:
     throw new Error(`User does not have an active connection for ${appName}`);
   }
   
-  // @ts-ignore - Temporary bypass for tool signature
-  return composio.actions.execute({
+  const client = await getComposioClient();
+  return client.actions.execute({
     action: toolName,
     params,
     connectedAccountId: connection.id

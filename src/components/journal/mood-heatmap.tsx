@@ -6,6 +6,8 @@ import { JournalEntry, Mood } from '@/store/founder-store';
 import { eachDayOfInterval, endOfYear, format, isSameDay, startOfYear } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
+import { calculateMoodStreakCorrelation } from '@/services/journal.service';
+import { TrendingUp, Activity } from 'lucide-react';
 
 interface MoodHeatmapProps {
     entries: JournalEntry[];
@@ -51,6 +53,21 @@ export function MoodHeatmap({ entries, year = new Date().getFullYear() }: MoodHe
     // Sécurité SSR : createPortal ne fonctionne que côté client
     const [mounted, setMounted] = useState(false);
     useEffect(() => { setMounted(true); }, []);
+
+    // Conversion des entrées en format numérique
+    const moodNumericScale: Record<Mood, number> = {
+        great: 5,
+        good: 4,
+        neutral: 3,
+        bad: 2,
+        terrible: 1,
+    };
+    const numericEntries = entries.map((e) => ({
+        date: e.date,
+        mood: moodNumericScale[e.mood] || 3,
+    }));
+
+    const correlationResult = calculateMoodStreakCorrelation(numericEntries, entries.length);
 
     // Calcul de la position de la carte (coordonnées viewport)
     const CARD_W = 240;
@@ -187,6 +204,20 @@ export function MoodHeatmap({ entries, year = new Date().getFullYear() }: MoodHe
                         );
                     })}
                 </div>
+
+                {/* Corrélation Humeur <-> Streak (Affichée UNIQUEMENT si >= 4 semaines de données) */}
+                {correlationResult.showCorrelation && (
+                    <div className="mt-4 p-3 bg-primary/10 border border-primary/20 rounded-lg flex items-center justify-between text-xs">
+                        <div className="flex items-center gap-2 text-primary">
+                            <Activity className="w-4 h-4" />
+                            <span className="font-semibold">{correlationResult.message}</span>
+                        </div>
+                        <div className="flex items-center gap-1 font-mono text-[11px] bg-background/50 px-2 py-0.5 rounded border border-border">
+                            <TrendingUp className="w-3 h-3 text-emerald-400" />
+                            Score : {correlationResult.correlationScore}
+                        </div>
+                    </div>
+                )}
             </div>
 
             {/* Portal : rendu directement dans document.body, hors de tout

@@ -5,21 +5,26 @@
  * Format JSON structuré pour aggregabilité (Logtail, Grafana, etc.).
  */
 
+import { getRequestContext } from '@/modules/shared/infrastructure/http/request-context';
+
 const SENTRY_DSN = process.env.SENTRY_DSN || '';
 
 // Lazy-init Sentry pour éviter l'import au build si pas configuré
-let sentryLoaded = false;
+let sentryInstance: any = null;
+let sentryAttempted = false;
+
 async function getSentry() {
   if (!SENTRY_DSN) return null;
-  if (sentryLoaded) {
+  if (!sentryAttempted) {
+    sentryAttempted = true;
     try {
       const Sentry = await import('@sentry/nextjs');
-      return Sentry.default || Sentry;
+      sentryInstance = Sentry.default || Sentry;
     } catch {
-      return null;
+      sentryInstance = null;
     }
   }
-  return null;
+  return sentryInstance;
 }
 
 type LogLevel = 'info' | 'warn' | 'error' | 'debug';
@@ -28,9 +33,11 @@ interface LogEntry {
   level: LogLevel;
   message: string;
   timestamp: string;
+  traceId?: string;
   route?: string;
   userId?: string;
   duration?: number;
+  errorDetails?: string;
   metadata?: Record<string, unknown>;
 }
 
@@ -40,17 +47,31 @@ interface LogEntry {
 function log(level: LogLevel, message: string, meta?: {
   route?: string;
   userId?: string;
+  traceId?: string;
   duration?: number;
   error?: unknown;
   [key: string]: unknown;
 }) {
+  const ctx = getRequestContext();
+  const route = (meta?.route as string) || ctx?.route;
+  const userId = (meta?.userId as string) || ctx?.userId;
+  const traceId = (meta?.traceId as string) || ctx?.traceId;
+
   const entry: LogEntry = {
     level,
     message,
     timestamp: new Date().toISOString(),
-    route: meta?.route,
-    userId: meta?.userId,
-    duration: meta?.duration,
+    traceId,
+    route,
+    userId,
+    duration: meta?.duration as number,
+    errorDetails: meta?.error
+      ? meta.error instanceof Error
+        ? meta.error.stack || meta.error.message
+        : typeof meta.error === 'object'
+        ? JSON.stringify(meta.error)
+        : String(meta.error)
+      : undefined,
     metadata: meta ? { ...meta } : undefined,
   };
 
@@ -58,8 +79,12 @@ function log(level: LogLevel, message: string, meta?: {
   if (entry.metadata) {
     delete entry.metadata.route;
     delete entry.metadata.userId;
+    delete entry.metadata.traceId;
     delete entry.metadata.duration;
     delete entry.metadata.error;
+    if (Object.keys(entry.metadata).length === 0) {
+      delete entry.metadata;
+    }
   }
 
   // Console JSON structuré
@@ -83,8 +108,8 @@ function log(level: LogLevel, message: string, meta?: {
     getSentry().then((Sentry) => {
       if (Sentry?.captureException) {
         Sentry.captureException(meta.error, {
-          tags: { route: meta?.route as string },
-          user: meta?.userId ? { id: meta.userId as string } : undefined,
+          tags: { route, traceId },
+          user: userId ? { id: userId } : undefined,
           extra: entry.metadata as Record<string, unknown>,
         });
       }

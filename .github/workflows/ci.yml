@@ -68,6 +68,9 @@ jobs:
           fi
           echo "SERVICE_ROLE check passed."
 
+      - name: Check Console Calls
+        run: npm run check:console
+
       - name: Run lint
         run: npm run lint
 

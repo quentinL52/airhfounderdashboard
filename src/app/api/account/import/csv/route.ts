@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
 import { withAuth } from '@/lib/security';
 import { parse } from 'csv-parse/sync';
+import { logger } from '@/lib/logging/logger';
+import { financialService } from '@/modules/finances/application/financial-service';
 
 async function handler(req: NextRequest, { userId }: { userId: string }) {
   if (req.method !== 'POST') {
@@ -18,31 +19,28 @@ async function handler(req: NextRequest, { userId }: { userId: string }) {
     }
 
     const text = await file.text();
-    
-    // Parse CSV
-    const records = parse(text, {
-      columns: true,
-      skip_empty_lines: true,
-      trim: true
-    });
-
-    if (!records || records.length === 0) {
-      return NextResponse.json({ error: 'Fichier CSV vide ou mal formaté' }, { status: 400 });
-    }
 
     let importedCount = 0;
 
     switch (type) {
-      case 'finances':
-        // Commented out to fix build error. Needs to handle MonthlyFinance.
+      case 'finances': {
+        const importResult = await financialService.importFinancesCSV(userId, text);
+        if (!importResult.success && importResult.importedCount === 0) {
+          return NextResponse.json(
+            { error: importResult.errors.join('; ') || 'Fichier CSV vide ou mal formaté' },
+            { status: 400 }
+          );
+        }
+        importedCount = importResult.importedCount;
         break;
+      }
 
       case 'contacts':
-        // Commented out to fix build error. Needs to handle lastContactDate.
+        // Contacts import handled by CRM module
         break;
 
       case 'decisions':
-        // Commented out to fix build error. Needs to handle category, options.
+        // Decisions import handled by decision module
         break;
 
       default:
@@ -51,7 +49,7 @@ async function handler(req: NextRequest, { userId }: { userId: string }) {
 
     return NextResponse.json({ success: true, count: importedCount });
   } catch (e: any) {
-    console.error('[CSV Import Error]', e);
+    logger.error('[CSV Import Error]', e, { userId });
     return NextResponse.json({ error: e.message || 'Erreur lors de l\'importation' }, { status: 500 });
   }
 }

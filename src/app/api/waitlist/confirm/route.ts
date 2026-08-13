@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { logger } from '@/lib/logging/logger';
 
 export async function GET(req: NextRequest) {
+  let token: string | null = null;
   try {
     const { searchParams } = new URL(req.url);
-    const token = searchParams.get('token');
+    token = searchParams.get('token');
 
     if (!token) {
       return NextResponse.redirect(new URL('/?error=invalid_token', req.url));
@@ -33,7 +35,7 @@ export async function GET(req: NextRequest) {
     // Redirection vers la page de remerciement
     return NextResponse.redirect(new URL('/thank-you', req.url));
   } catch (error) {
-    console.error('Waitlist confirm error:', error);
+    logger.error('Waitlist confirm error', error, { token: token ?? undefined });
     return NextResponse.redirect(new URL('/?error=internal_error', req.url));
   }
 }

@@ -12,6 +12,7 @@ import {
 import { LeanHealthPanel } from './lean-health-panel';
 import { CompetitorDialog } from './competitor-dialog';
 import { CompetitorInlineForm } from './competitor-inline-form';
+import { WatchWidget } from '@/components/dashboard/watch-widget';
 import { toast } from '@/hooks/use-toast';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -293,6 +294,9 @@ export function LeanDashboardTab({ onTabChange }: LeanDashboardTabProps) {
 
             {/* ───────────── Health Panel (score + sub-scores) ───────────── */}
             <LeanHealthPanel />
+
+            {/* ───────────── Watch Widget (proactive scan & settings) ───────────── */}
+            <WatchWidget />
 
             {/* ───────────── 3 KPI Cards Row ───────────── */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

@@ -1,10 +1,10 @@
 import { NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import { memory } from '@/lib/ai/memory/obsidian-memory';
-import { processSubAgentQueue } from '@/lib/queue/sub-agent-queue';
 import { createClient } from '@supabase/supabase-js';
 import { env } from '@/lib/env';
 import { stripe } from '@/lib/billing/stripe-client';
+import { logger } from '@/lib/logging/logger';
 
 const prisma = new PrismaClient();
 
@@ -39,10 +39,6 @@ export async function GET() {
   const results: string[] = [];
 
   try {
-    // 1. Traiter les jobs sub-agents en attente
-    const queueResult = await processSubAgentQueue();
-    results.push(`Sub-agent queue: ${queueResult.processed} processed, ${queueResult.failed} failed`);
-
     // 2. Récupérer les tâches planifiées arrivées à échéance
     const now = new Date();
     const dueTasks = await prisma.scheduledTask.findMany({
@@ -69,7 +65,7 @@ export async function GET() {
           } catch (err: any) {
             const isAlreadyCanceled = err?.code === 'resource_missing' || err?.message?.includes('already canceled');
             if (!isAlreadyCanceled) {
-              console.error(`[Cron] Stripe cancel failed for user ${user.id}: ${err.message}. Skipping purge.`);
+              logger.error(`[Cron] Stripe cancel failed for user ${user.id}: ${err.message}. Skipping purge.`, err, { userId: user.id });
               results.push(`User ${user.id} skipped (Stripe error)`);
               continue;
             }
@@ -77,20 +73,21 @@ export async function GET() {
         }
 
         // Cascade supprime les données Prisma
-        console.time(`purge_user_${user.id}`);
+        const startTime = Date.now();
         await prisma.user.delete({ where: { id: user.id } });
-        console.timeEnd(`purge_user_${user.id}`);
+        const duration = Date.now() - startTime;
+        logger.info(`Purged user ${user.id} in ${duration}ms`, { userId: user.id, duration });
         
         // Supprimer de Supabase Auth
         // Justification : nous utilisons supabaseAdmin.auth.admin.deleteUser ici car cette purge
         // est effectuée de manière asynchrone par un cron (sans la session de l'utilisateur).
         const { error: authError } = await supabaseAdmin.auth.admin.deleteUser(user.id);
         if (authError) {
-           console.error(`[Cron] Failed to delete Supabase user ${user.id}:`, authError);
+           logger.error(`[Cron] Failed to delete Supabase user ${user.id}`, authError, { userId: user.id });
         }
         results.push(`User ${user.id} permanently deleted`);
       } catch(err) {
-        console.error(`[Cron] Failed to delete user ${user.id}:`, err);
+        logger.error(`[Cron] Failed to delete user ${user.id}`, err, { userId: user.id });
       }
     }
 
@@ -110,7 +107,7 @@ export async function GET() {
           },
         });
       } catch (err) {
-        console.error(`[Cron] Failed to process task ${task.id}:`, err);
+        logger.error(`[Cron] Failed to process task ${task.id}`, err, { taskId: task.id });
         results.push(`Task '${task.taskName}' (${task.id}) FAILED: ${err instanceof Error ? err.message : 'Unknown'}`);
       }
     }
@@ -122,7 +119,7 @@ export async function GET() {
       timestamp: now.toISOString(),
     });
   } catch (error) {
-    console.error('[Cron Process] Error:', error);
+    logger.error('[Cron Process] Error', error);
     return NextResponse.json(
       { error: 'Cron processing failed', message: error instanceof Error ? error.message : 'Unknown' },
       { status: 500 },
@@ -172,7 +169,7 @@ async function processScheduledTask(task: {
 
     case 'finance_sync':
       // Déclenche une sync Stripe (appel API interne)
-      await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/billing/stripe/sync`, {
+      await fetch(`${env.NEXT_PUBLIC_APP_URL}/api/billing/stripe/sync`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId }),
@@ -210,18 +207,31 @@ async function processScheduledTask(task: {
 
 /**
  * Calcule la prochaine exécution selon une expression cron.
- * Version simplifiée — utilise cron-parser si disponible.
  */
 function calculateNextRun(schedule: string, from: Date): Date {
-  try {
-    // Tentative d'utiliser cron-parser si installé
-    const parser = require('cron-parser');
-    const interval = parser.parseExpression(schedule, { currentDate: from });
-    return interval.next().toDate();
-  } catch {
-    // Fallback: +1 heure si parsing échoue
-    return new Date(from.getTime() + 60 * 60 * 1000);
+  const parts = schedule.trim().split(/\s+/);
+  if (parts.length === 5) {
+    const [min, hour] = parts;
+    const next = new Date(from.getTime());
+    if (min.startsWith('*/')) {
+      const step = parseInt(min.slice(2), 10) || 5;
+      next.setMinutes(next.getMinutes() + step);
+      return next;
+    }
+    if (hour === '*' && !isNaN(parseInt(min, 10))) {
+      next.setHours(next.getHours() + 1, parseInt(min, 10), 0, 0);
+      return next;
+    }
+    if (!isNaN(parseInt(hour, 10)) && !isNaN(parseInt(min, 10))) {
+      next.setHours(parseInt(hour, 10), parseInt(min, 10), 0, 0);
+      if (next <= from) {
+        next.setDate(next.getDate() + 1);
+      }
+      return next;
+    }
   }
+  // Fallback: +1 heure si parsing non standard
+  return new Date(from.getTime() + 60 * 60 * 1000);
 }
 
 function getWeekNumber(date: Date): number {

@@ -130,7 +130,7 @@ export interface ContentIdea {
 }
 
 // Module 11: CRM Lite
-export type ContactType = 'candidat' | 'entreprise' | 'investisseur' | 'école';
+export type ContactType = 'candidat' | 'entreprise' | 'investisseur' | 'école' | 'prospect' | 'partner';
 export type ContactStatus = 'À contacter' | 'En discussion' | 'Qualifié' | 'Client' | 'Perdu';
 
 export interface Contact {
@@ -255,28 +255,9 @@ export interface MySolution {
     pricing?: string; // Text summary
 }
 
-export interface GoToMarketStrategy {
-    // Storybrand
-    sbHero: string;
-    sbProblem: string;
-    sbGuide: string;
-    
-    // Obviously Awesome
-    oaAlternatives: string;
-    oaUniqueAttributes: string;
-    oaValue: string;
-    
-    // 1-Page Marketing Plan (Acquisition focused)
-    ompTarget: string;
-    ompMessage: string;
-    ompMedia: string;
-    
-    // Cold Start Problem
-    csAtomicNetwork: string;
-    
-    // Online Writing
-    owCadence: string;
-}
+import type { GoToMarketStrategy as ModuleGtmStrategy } from '@/modules/gtm';
+export type GoToMarketStrategy = ModuleGtmStrategy;
+
 
 export interface RoadmapItem {
     id: string;
@@ -287,6 +268,7 @@ export interface RoadmapItem {
     week?: string;
     startDate?: string; // ISO date string
     dueDate?: string;   // ISO date string
+    gtmStepId?: string;
     createdAt: string;
     updatedAt: string;
 }
@@ -555,6 +537,8 @@ export interface FounderStore {
     language: 'fr' | 'en';
     setLanguage: (lang: 'fr' | 'en') => void;
     hydrate: (state: Partial<FounderStore>) => void;
+    density: 'compact' | 'comfortable';
+    setDensity: (density: 'compact' | 'comfortable') => void;
     setUserId: (id: string | null) => void;
     setPlanStatus: (status: PlanStatus) => void;
     setPlan: (plan: PlanType | null) => void;
@@ -707,7 +691,9 @@ export const useFounderStore = create<FounderStore>()(
             ...initialState,
             language: 'fr', // Explicit override if needed, but initialState has it
 
-            setUserId: (id) => set({ userId: id }),
+            density: 'comfortable',
+    setDensity: (density) => set({ density }),
+    setUserId: (id) => set({ userId: id }),
             setPlanStatus: (status) => set({ planStatus: status }),
             setPlan: (plan) => set({ plan }),
             setFounderDeal: (val) => set({ founderDeal: val }),

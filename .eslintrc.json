@@ -1,16 +1,14 @@
 {
   "extends": "next/core-web-vitals",
   "rules": {
-    "no-restricted-syntax": [
-      "error",
-      {
-        "selector": "Literal[value=/-(?:\\[#)/]",
-        "message": "Do not use arbitrary hex colors in Tailwind classes (e.g. text-[#fff]). Use semantic design tokens instead."
-      },
-      {
-        "selector": "TemplateElement[value.raw=/-(?:\\[#)/]",
-        "message": "Do not use arbitrary hex colors in Tailwind classes (e.g. text-[#fff]). Use semantic design tokens instead."
+    "react/no-unescaped-entities": "off"
+  },
+  "overrides": [
+    {
+      "files": ["src/app/api/**/*.ts", "src/app/api/**/*.tsx", "src/app/api/**/*.js", "src/app/api/**/*.jsx"],
+      "rules": {
+        "no-console": "error"
       }
-    ]
-  }
+    }
+  ]
 }

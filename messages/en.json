@@ -42,6 +42,7 @@
   },
   "nav": {
     "dashboard": "Dashboard",
+    "decisions": "Decisions",
     "hypotheses": "Hypotheses",
     "finances": "Finances",
     "roadmap": "Roadmap",
@@ -157,7 +158,15 @@
     "paymentEncrypted": "Encrypted payment via Stripe (PCI DSS Level 1)",
     "invoiceByEmail": "Invoices sent by email after each payment",
     "upgradeAnytime": "Upgrade/downgrade anytime, no fees",
-    "cancelAnytime": "No commitment. Cancel anytime from your Stripe portal"
+    "cancelAnytime": "No commitment. Cancel anytime from your Stripe portal",
+    "usageTitle": "AI Actions Usage",
+    "usageSubtitle": "Monthly consumption tracking",
+    "actionsUsed": "{used} of {limit} actions used",
+    "unlimitedByok": "Unlimited (BYOK)",
+    "quotaExceeded": "AI action limit reached for this month.",
+    "statusActive": "Active",
+    "statusTrialing": "Trialing",
+    "statusReadonly": "Read-only"
   },
   "cohort": {
     "founders": "Founding Member",
@@ -569,5 +578,47 @@
     "finish": "Looks good, set up my dashboard",
     "consentWeekly": "Send me a weekly brief",
     "consentJournal": "Enable daily mood journal"
+  },
+  "gtm": {
+    "title": "Go-To-Market Strategy",
+    "subtitle": "Positioning, distribution, and measurement of your market launch.",
+    "steps": {
+      "positioning": "Positioning & ICP",
+      "messaging": "Messaging",
+      "channels": "Channels",
+      "launch": "Launch plan",
+      "measure": "Measure & iterate"
+    },
+    "icp": {
+      "title": "Ideal Customer Profile (ICP) Manager",
+      "subtitle": "Define your target segment, buyer role, core pain points, and competitive alternatives.",
+      "nameLabel": "Profile Name",
+      "buyerRoleLabel": "Buyer Role",
+      "targetAudienceLabel": "Target Audience & Segment Description",
+      "painPointsLabel": "Core Pain Points (1 per line)",
+      "benefitsLabel": "Key Delivered Benefits (1 per line)",
+      "alternativesLabel": "Competitive Alternatives (1 per line)",
+      "completeness": "Completeness",
+      "suggestionsTitle": "Suggestions for Sharpening ICP",
+      "saveButton": "Save ICP Profile"
+    },
+    "board": {
+      "title": "GTM Strategy Pillars",
+      "subtitle": "Framework alignment across Messaging, Positioning, and Distribution.",
+      "pillarsCount": "{completed}/{total} Pillars",
+      "targetSegment": "Target ICP Segment",
+      "compAlternatives": "Competitive Alternatives",
+      "uniqueAttributes": "Unique Attributes & Value",
+      "valueProp": "Value Proposition / Hook",
+      "problemStatement": "Core Problem Statement",
+      "guideCredibility": "Guide & Credibility",
+      "primaryChannels": "Primary Channels",
+      "contentCadence": "Content Cadence",
+      "atomicNetwork": "Atomic Network Strategy",
+      "realMetrics": "Real Execution Metrics",
+      "waitlistLeads": "Waitlist Leads",
+      "wonLeads": "Won CRM Leads",
+      "currentMrr": "Current MRR"
+    }
   }
 }

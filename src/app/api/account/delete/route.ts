@@ -4,6 +4,7 @@ import { withAuth } from '@/lib/security/with-auth';
 import { sendDeletionScheduledEmail } from '@/lib/email/email-service';
 import { createClient } from '@supabase/supabase-js';
 import { env } from '@/lib/env';
+import { logger } from '@/lib/logging/logger';
 
 const supabaseAdmin = createClient(
   env.NEXT_PUBLIC_SUPABASE_URL,
@@ -40,7 +41,7 @@ async function handler(req: NextRequest, { userId }: { userId: string }) {
     try {
       await sendDeletionScheduledEmail(user.email, user.name);
     } catch (err) {
-      console.error('[DELETE_ACCOUNT] Failed to send deletion scheduled email', err);
+      logger.error('[DELETE_ACCOUNT] Failed to send deletion scheduled email', err, { userId });
     }
 
     // 3. Invalidation des sessions
@@ -48,13 +49,13 @@ async function handler(req: NextRequest, { userId }: { userId: string }) {
     if (authHeader?.startsWith('Bearer ')) {
       const token = authHeader.substring(7);
       await supabaseAdmin.auth.admin.signOut(token, 'global').catch(e => {
-        console.error('[DELETE_ACCOUNT] Failed to invalidate sessions:', e);
+        logger.error('[DELETE_ACCOUNT] Failed to invalidate sessions', e, { userId });
       });
     }
 
     return NextResponse.json({ ok: true });
   } catch (error) {
-    console.error('[DELETE_ACCOUNT_ERROR]', error);
+    logger.error('[DELETE_ACCOUNT_ERROR]', error, { userId });
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }

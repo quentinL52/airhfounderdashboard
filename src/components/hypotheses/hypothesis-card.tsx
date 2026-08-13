@@ -18,7 +18,8 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import { Hypothesis, useFounderStore, HypothesisStatus } from '@/store/founder-store';
+import { useFounderStore } from '@/store/founder-store';
+import { GrowthHypothesis as Hypothesis, HypothesisStatus } from '@/modules/gtm';
 import { formatDistanceToNow } from 'date-fns';
 import { translations } from '@/lib/translations';
 

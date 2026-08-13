@@ -11,6 +11,8 @@ import { format } from 'date-fns';
 import { fr, enUS } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { translations } from '@/lib/translations';
+import { detectDistress } from '@/services/journal.service';
+import { AlertCircle, Lightbulb } from 'lucide-react';
 
 interface JournalEditorProps {
     onSave: (entry: {
@@ -31,6 +33,8 @@ export function JournalEditor({ onSave, initialDate = new Date() }: JournalEdito
     const [mood, setMood] = useState<Mood>('neutral');
     const [tags, setTags] = useState('');
     const [blockers, setBlockers] = useState('');
+
+    const distressCheck = detectDistress(content + ' ' + blockers);
 
     const locale = language === 'fr' ? fr : enUS;
 
@@ -88,6 +92,25 @@ export function JournalEditor({ onSave, initialDate = new Date() }: JournalEdito
                     }}
                 />
             </div>
+
+            {/* Prompt du jour contextuel */}
+            <div className="p-3 bg-primary/10 border border-primary/20 rounded-lg flex items-start gap-2.5 text-xs text-primary">
+                <Lightbulb className="w-4 h-4 shrink-0 mt-0.5" />
+                <div>
+                    <span className="font-bold">Prompt du jour :</span> Qu'avez-vous appris ou franchi de marquant aujourd'hui pour faire progresser votre produit ?
+                </div>
+            </div>
+
+            {/* Garde-fou Détresse (Message statique d'orientation sans coaching génératif) */}
+            {distressCheck.isDistress && (
+                <div className="p-4 bg-red-500/10 border border-red-500/30 rounded-lg flex items-start gap-3 text-sm text-red-400 animate-in fade-in">
+                    <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
+                    <div className="space-y-1">
+                        <div className="font-bold">Besoin d'écoute ou d'accompagnement ?</div>
+                        <div className="text-xs whitespace-pre-line leading-relaxed">{distressCheck.message}</div>
+                    </div>
+                </div>
+            )}
 
             <div className="grid gap-6">
                 {/* Mood Selector */}

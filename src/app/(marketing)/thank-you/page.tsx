@@ -65,6 +65,16 @@ export default function ThankYouPage() {
             </div>
           </a>
 
+          <a href="https://www.producthunt.com/products/helmdash" target="_blank" rel="noreferrer" className="hover:-translate-y-[2px] transition-all" style={{ display: "flex", alignItems: "center", gap: 16, background: "hsl(42,33%,93%)", padding: "24px", borderRadius: 16, border: "1px solid hsl(215,52%,12%, 0.1)" }}>
+            <div style={{ width: 48, height: 48, borderRadius: 12, background: "hsl(215,52%,12%, 0.05)", display: "flex", alignItems: "center", justifyContent: "center", color: "#F28A2E" }}>
+              <span style={{ fontSize: 24, fontWeight: 800 }}>P</span>
+            </div>
+            <div>
+              <div style={{ fontFamily: '"IBM Plex Mono", monospace', fontSize: 13, color: "hsl(214,15%,34%)", marginBottom: 4 }}>Product Hunt</div>
+              <div style={{ fontSize: 18, fontWeight: 600, color: "hsl(215,52%,12%)" }}>Helmdash</div>
+            </div>
+          </a>
+
           <a href="https://www.linkedin.com/company/helmdashapp" target="_blank" rel="noreferrer" className="hover:-translate-y-[2px] transition-all" style={{ display: "flex", alignItems: "center", gap: 16, background: "hsl(42,33%,93%)", padding: "24px", borderRadius: 16, border: "1px solid hsl(215,52%,12%, 0.1)" }}>
             <div style={{ width: 48, height: 48, borderRadius: 12, background: "hsl(215,52%,12%, 0.05)", display: "flex", alignItems: "center", justifyContent: "center", color: "hsl(215,52%,12%)" }}>
               <Linkedin size={24} />

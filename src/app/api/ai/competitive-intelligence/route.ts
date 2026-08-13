@@ -24,7 +24,7 @@ async function tavilySearch(query: string) {
         const data = await response.json();
         return data.results || [];
     } catch (error) {
-        console.error('Tavily search failed:', error);
+        logger.error('Tavily search failed', error);
         return [];
     }
 }
@@ -218,7 +218,7 @@ Generate a comprehensive competitive intelligence analysis.`;
 
         return NextResponse.json(intelligence);
     } catch (error) {
-        console.error('Competitive Intelligence Error:', error);
+        logger.error('Competitive Intelligence Error', error, { userId });
         return NextResponse.json(
             { error: 'Failed to generate competitive intelligence' },
             { status: 500 }

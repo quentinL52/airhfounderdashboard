@@ -46,7 +46,7 @@ export function CompetitorInlineForm({ onCancel, onSuccess, initialData, isMySol
     const addCompetitor = useFounderStore((s) => s.addCompetitor);
     const updateMySolution = useFounderStore((s) => s.updateMySolution);
     const language = useFounderStore((s) => s.language);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // eslint-disable-next-line
     const t = (translations[language as keyof typeof translations] as any).competitiveWatch;
 
     // Form State - initialized with initialData or defaults

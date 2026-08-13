@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { logger } from '@/lib/logging/logger';
 
 const CRON_SECRET = process.env.CRON_SECRET;
 
@@ -82,7 +83,7 @@ export async function GET(req: Request) {
       results: results.map((r) => (r.status === 'fulfilled' ? r.value : { error: r.reason?.message })),
     });
   } catch (error) {
-    console.error('[Cron Scheduled Tasks] Error:', error);
+    logger.error('[Cron Scheduled Tasks] Error', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

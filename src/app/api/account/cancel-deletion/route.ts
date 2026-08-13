@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { withAuth } from '@/lib/security/with-auth';
 import { stripe } from '@/lib/billing/stripe-client';
+import { logger } from '@/lib/logging/logger';
 
 async function handler(req: NextRequest, { userId }: { userId: string }) {
   try {
@@ -27,7 +28,7 @@ async function handler(req: NextRequest, { userId }: { userId: string }) {
           nextStatus = 'active'; // ou trialing
         }
       } catch (err: any) {
-        console.error(`[CANCEL_DELETION] Failed to retrieve Stripe subscription: ${err.message}`);
+        logger.error('[CANCEL_DELETION] Failed to retrieve Stripe subscription', err, { userId });
       }
     }
 
@@ -41,7 +42,7 @@ async function handler(req: NextRequest, { userId }: { userId: string }) {
 
     return NextResponse.json({ ok: true });
   } catch (error) {
-    console.error('[CANCEL_DELETION_ERROR]', error);
+    logger.error('[CANCEL_DELETION_ERROR]', error, { userId });
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }

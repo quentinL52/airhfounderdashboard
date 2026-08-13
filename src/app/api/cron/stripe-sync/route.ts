@@ -1,36 +1,34 @@
 import { NextResponse } from 'next/server';
-import { syncStripeToFinances } from '@/lib/billing/stripe-sync';
 import { prisma } from '@/lib/prisma';
+import { logger } from '@/lib/logging/logger';
+import { stripeSyncAdapter } from '@/modules/finances/infrastructure/adapters/stripe-sync-adapter';
 
 const CRON_SECRET = process.env.CRON_SECRET;
 
 export async function GET(req: Request) {
-  // Vérification sécurité cron
+  // Check cron secret
   const authHeader = req.headers.get('Authorization');
   if (authHeader !== `Bearer ${CRON_SECRET}`) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
   try {
-    // Récupérer tous les utilisateurs avec Stripe configuré
     const users = await prisma.user.findMany({
       where: {
         stripeCustomerId: { not: null },
       },
-      select: { id: true, stripeCustomerId: true },
+      select: { id: true },
     });
 
-    const results: PromiseSettledResult<{ userId: string; status: string }>[] = await Promise.allSettled(
-      users.map(async (user: { id: string; stripeCustomerId: string | null }) => {
-        // Appeler la fonction de sync existante
-        const stripeCustomerRef = { customer: user.stripeCustomerId };
-        await syncStripeToFinances(stripeCustomerRef, 'cron.sync');
+    const results = await Promise.allSettled(
+      users.map(async (user: { id: string }) => {
+        await stripeSyncAdapter.syncUserStripeData(user.id);
         return { userId: user.id, status: 'synced' as const };
       })
     );
 
-    const successful = results.filter((r: PromiseSettledResult<{ userId: string; status: string }>) => r.status === 'fulfilled').length;
-    const failed = results.filter((r: PromiseSettledResult<{ userId: string; status: string }>) => r.status === 'rejected').length;
+    const successful = results.filter((r) => r.status === 'fulfilled').length;
+    const failed = results.filter((r) => r.status === 'rejected').length;
 
     return NextResponse.json({
       success: true,
@@ -38,7 +36,7 @@ export async function GET(req: Request) {
       results,
     });
   } catch (error) {
-    console.error('[Cron Stripe Sync] Error:', error);
+    logger.error('[Cron Stripe Sync] Error', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

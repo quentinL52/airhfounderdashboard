@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import crypto from 'crypto';
+import { logger } from '@/lib/logging/logger';
 
 /**
  * POST /api/integrations/composio/webhook
@@ -36,7 +37,7 @@ export async function POST(req: Request) {
       .digest('hex');
 
     if (signature !== expectedSignature) {
-      console.warn('[Composio Webhook] Invalid signature — possible forgery attempt');
+      logger.warn('[Composio Webhook] Invalid signature — possible forgery attempt');
       return NextResponse.json(
         { error: 'Invalid signature' },
         { status: 401 }
@@ -45,12 +46,12 @@ export async function POST(req: Request) {
 
     // Process webhook
     const data = JSON.parse(body);
-    console.log('Received Composio webhook:', JSON.stringify(data).slice(0, 500));
+    logger.info('Received Composio webhook', { preview: JSON.stringify(data).slice(0, 500) });
 
     // Composio handles OAuth tokens on their end — we just log for now
     return NextResponse.json({ received: true });
   } catch (error) {
-    console.error('Composio webhook handling error:', error);
+    logger.error('Composio webhook handling error', error);
     return NextResponse.json(
       { error: 'Webhook handler failed' },
       { status: 500 }

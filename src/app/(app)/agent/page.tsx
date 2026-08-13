@@ -1,5 +1,7 @@
-import { AgentTaskHistory } from '@/components/agent/AgentTaskHistory';
+import { AgentSidebar, ChatUI } from '@/modules/agent';
+import { AiUsageGauge } from '@/components/dashboard/ai-usage-gauge';
 import { createClient } from '@/utils/supabase/server';
+import { prisma } from '@/lib/prisma';
 import { redirect } from 'next/navigation';
 
 export const metadata = {
@@ -7,12 +9,32 @@ export const metadata = {
   description: "L'agent central de Helmdash. Apprend, challenge, motive, orchestre.",
 };
 
-export default async function AgentPage() {
+export default async function AgentPage(props: {
+  searchParams: Promise<{ c?: string }>;
+}) {
+  const searchParams = await props.searchParams;
+  const cId = searchParams.c;
+
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) {
     redirect('/login');
+  }
+
+  // Fetch the conversation if cId is specified, otherwise latest
+  let recentConv = null;
+  if (cId) {
+    recentConv = await prisma.conversation.findUnique({
+      where: { id: cId, userId: user.id },
+      select: { id: true }
+    });
+  } else {
+    recentConv = await prisma.conversation.findFirst({
+      where: { userId: user.id },
+      orderBy: { updatedAt: 'desc' },
+      select: { id: true }
+    });
   }
 
   return (
@@ -29,13 +51,14 @@ export default async function AgentPage() {
 
         <div className="flex-1 grid grid-cols-1 xl:grid-cols-4 gap-4 min-h-0">
           {/* Chat principal (migré) */}
-          <div className="xl:col-span-3 min-h-0 flex items-center justify-center border rounded-lg bg-background">
-            <p className="text-muted-foreground">L'interface de chat a été retirée (migration en cours).</p>
+          <div className="xl:col-span-3 min-h-0 flex flex-col space-y-4">
+            <AiUsageGauge />
+            <ChatUI initialConversationId={recentConv?.id} />
           </div>
 
-          {/* Panneau latéral : historique des tâches */}
-          <div className="xl:col-span-1 min-h-0">
-            <AgentTaskHistory userId={user.id} />
+          {/* Panneau latéral : historique des tâches et conversations */}
+          <div className="xl:col-span-1 min-h-0 h-full max-h-full flex flex-col">
+            <AgentSidebar userId={user.id} />
           </div>
         </div>
       </div>

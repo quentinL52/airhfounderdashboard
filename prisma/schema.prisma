@@ -32,6 +32,8 @@ model User {
   onboardedAt          DateTime? @map("onboarded_at")
   locale               String    @default("en")
   timezone             String    @default("Europe/Paris")
+  role                 String?   @default("user")
+  mvpTargetDate        DateTime? @map("mvp_target_date") @db.Date
 
   projects      Project[]
   moodEntries   MoodEntry[]
@@ -56,6 +58,10 @@ model User {
   scheduledTasks        ScheduledTask[]
   agentTasks            AgentTask[]
   gamificationProfile   GamificationProfile?
+  objectives            Objective[]
+  keyResults            KeyResult[]
+  watchSettings         WatchSettings?
+  importLogs            ImportLog[]
   onboardingSession     OnboardingSession?
   conversations         Conversation[]
   aiCostLogs            AiCostLog[]
@@ -513,6 +519,7 @@ model RoadmapItem {
   startDate    DateTime?       @map("start_date") @db.Date
   dueDate      DateTime?       @map("due_date") @db.Date
   milestone    Boolean         @default(false)
+  gtmStepId    String?         @map("gtm_step_id")
   createdAt    DateTime        @default(now()) @map("created_at")
   updatedAt    DateTime        @default(now()) @map("updated_at")
 
@@ -600,6 +607,24 @@ model GamificationProfile {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("gamification_profiles")
+}
+
+model AgentProposal {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  source    String   @default("chat") // chat|auto_capture|import
+  tabName   String   @map("tab_name")
+  action    String // create|update|delete
+  payload   Json
+  status    String   @default("pending") // pending|accepted|rejected
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([userId, status])
+  @@map("agent_proposals")
 }
 
 // ==========================================

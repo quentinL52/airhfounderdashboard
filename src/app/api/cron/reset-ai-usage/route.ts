@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { PRICING_CONFIG } from '@/lib/billing/pricing-config';
+import { logger } from '@/lib/logging/logger';
 
 // This endpoint is meant to be called by a cron job on the 1st of every month
 // E.g., Vercel Cron or GitHub Actions.
@@ -24,11 +25,11 @@ export async function GET(request: Request) {
       where: { month: lastMonth }
     });
 
-    console.log(`[Cron] Reset AI Usage triggered for ${currentMonth}. Previous month (${lastMonth}) had ${usages} active AI users.`);
+    logger.info(`[Cron] Reset AI Usage triggered for ${currentMonth}. Previous month (${lastMonth}) had ${usages} active AI users.`, { currentMonth, lastMonth, usages });
 
     return NextResponse.json({ success: true, currentMonth, lastMonthUsages: usages });
   } catch (error) {
-    console.error('[Cron] Error resetting AI usage:', error);
+    logger.error('[Cron] Error resetting AI usage', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }

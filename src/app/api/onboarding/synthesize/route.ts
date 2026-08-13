@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { withAuth } from '@/lib/security';
 import { synthesizeOnboarding, checkBudget } from '@/lib/ai/onboarding-agent';
+import { logger } from '@/lib/logging/logger';
 
 function generateDegradedSynthesis(answers: Record<string, string>) {
   const futureDate = new Date();
@@ -48,7 +49,7 @@ async function handler(req: NextRequest, { userId }: { userId: string }) {
         try {
           synthesis = await synthesizeOnboarding(answers, userId);
         } catch (e) {
-          console.error('[API Onboarding Synthesize] LLM failed, using degraded mode.', e);
+          logger.error('[API Onboarding Synthesize] LLM failed, using degraded mode', e, { userId });
           synthesis = generateDegradedSynthesis(answers);
           isDegraded = true;
         }
@@ -67,7 +68,7 @@ async function handler(req: NextRequest, { userId }: { userId: string }) {
 
       return NextResponse.json({ synthesis, isDegraded, session: updatedSession });
     } catch (e: any) {
-      console.error('[API Onboarding Synthesize] Error:', e);
+      logger.error('[API Onboarding Synthesize] Error', e, { userId });
       return NextResponse.json({ error: e.message || 'Server error' }, { status: 500 });
     }
   }

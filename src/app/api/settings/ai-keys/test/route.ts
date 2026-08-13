@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { z } from 'zod';
 import { withAuth, withValidation } from '@/lib/security';
+import { logger } from '@/lib/logging/logger';
 
 const PROVIDERS = ['openai', 'anthropic', 'google', 'mistral'] as const;
 
@@ -102,7 +103,7 @@ async function handler(
 
     return NextResponse.json({ ok: true, provider: body.provider });
   } catch (error) {
-    console.error('[Settings AI Keys Test] Error:', error);
+    logger.error('[Settings AI Keys Test] Error', error, { userId });
     return NextResponse.json(
       { error: 'Failed to test API key' },
       { status: 500 },

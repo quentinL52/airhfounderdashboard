@@ -108,7 +108,7 @@ export function AgentsWidget() {
 
       const data = await response.json();
 
-      if (!response.ok || data.status === 'error') {
+      if (!response.ok || data.status === 'failed') {
         throw new Error(data.error || 'Erreur inconnue');
       }
 
@@ -116,7 +116,7 @@ export function AgentsWidget() {
       setSelectedAgent(agent.id);
       awardXP('agent_used'); // Gamification reward
     } catch (error: any) {
-      setRuns(prev => ({ ...prev, [agent.id]: { status: 'error', error: error.message } }));
+      setRuns(prev => ({ ...prev, [agent.id]: { status: 'failed', error: error.message } }));
     }
   };
 
@@ -150,7 +150,7 @@ export function AgentsWidget() {
             const runState = runs[agent.id] || { status: 'idle' };
             const isRunning = runState.status === 'running';
             const isSuccess = runState.status === 'success';
-            const isError = runState.status === 'error';
+            const isError = runState.status === 'failed';
 
             return (
               <div key={agent.id} className="flex flex-col gap-1">

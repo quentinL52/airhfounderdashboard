@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { withAuth } from '@/lib/security';
 import { z } from 'zod';
+import { logger } from '@/lib/logging/logger';
 
 const actionSchema = z.object({
   action: z.enum(['add', 'update', 'delete']),
@@ -61,7 +62,7 @@ async function handler(req: NextRequest, { userId }: { userId: string }) {
 
     return NextResponse.json({ error: 'Method not allowed' }, { status: 405 });
   } catch (error: any) {
-    console.error('[API Data Interactions] Error:', error);
+    logger.error('[API Data Interactions] Error', error, { userId });
     return NextResponse.json({ error: error.message || 'Server error' }, { status: 500 });
   }
 }

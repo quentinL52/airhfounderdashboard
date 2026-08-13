@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useMemo, useCallback, useEffect } from 'react';
-import { useFounderStore, Contact, ContactStatus } from '@/store/founder-store';
+import { useFounderStore } from '@/store/founder-store';
+import { Contact, ContactStatus, LeadScoringService } from '@/modules/gtm';
 import { ContactDialog } from '@/components/crm/contact-dialog';
 import { generateFollowUp } from '@/lib/ai-service';
 import { getGoogleProviderToken, fetchGoogleContacts } from '@/lib/google-api';
@@ -33,9 +34,7 @@ const STATUS_COLORS: Record<ContactStatus, string> = {
 
 export default function CRMPage() {
     const [userId, setUserId] = useState<string | null>(null);
-    const contacts = useFounderStore(s => s.contacts);
-    const addContact = useFounderStore(s => s.addContact);
-    const deleteContact = useFounderStore(s => s.deleteContact);
+    const { contacts, addContact, deleteContact, goToMarket } = useFounderStore();
     const language = useFounderStore(s => s.language);
     const t = (translations[language] as any).crm || {};
     const common = translations[language].common;
@@ -255,12 +254,29 @@ export default function CRMPage() {
                                         </div>
                                     </TableCell>
 
-                                    {/* Statut */}
-                                    <TableCell>
-                                        <Badge variant="outline" className={`capitalize font-medium border ${STATUS_COLORS[contact.status] || 'border-border'}`}>
-                                            {t.statuses?.[contact.status] || contact.status}
-                                        </Badge>
-                                    </TableCell>
+                                     {/* Statut & Qualification ICP */}
+                                     <TableCell>
+                                         <div className="flex flex-col gap-1 items-start">
+                                             <Badge variant="outline" className={`capitalize font-medium border ${STATUS_COLORS[contact.status] || 'border-border'}`}>
+                                                 {t.statuses?.[contact.status] || contact.status}
+                                             </Badge>
+                                             {(() => {
+                                                 const target = (goToMarket?.ompTarget || '').toLowerCase();
+                                                 if (!target) return null;
+                                                 const text = `${contact.role || ''} ${contact.company || ''} ${contact.type || ''} ${contact.notes || ''}`.toLowerCase();
+                                                 const isMatch = target.split(/\s+/).some(word => word.length > 3 && text.includes(word));
+                                                 return isMatch ? (
+                                                     <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30 text-[9px] px-1.5 py-0">
+                                                         ICP Match
+                                                     </Badge>
+                                                 ) : (
+                                                     <Badge variant="outline" className="text-[9px] text-muted-foreground opacity-60 px-1.5 py-0">
+                                                         No Match
+                                                     </Badge>
+                                                 );
+                                             })()}
+                                         </div>
+                                     </TableCell>
                                     {/* Dernier contact */}
                                     <TableCell className="text-muted-foreground text-sm">
                                         {contact.lastContactDate ? new Date(contact.lastContactDate).toLocaleDateString(locale) : '—'}

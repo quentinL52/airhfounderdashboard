@@ -52,25 +52,31 @@ function memoryRateLimit(key: string, rpm: number): RateLimitResult {
 }
 
 // ── Upstash Redis (production) ──────────────────────────────
-async function upstashRateLimit(key: string, rpm: number): Promise<RateLimitResult> {
+export async function upstashRateLimit(key: string, rpm: number): Promise<RateLimitResult> {
   const url = process.env.UPSTASH_REDIS_REST_URL;
   const token = process.env.UPSTASH_REDIS_REST_TOKEN;
 
-  if (!url || !token) {
-    console.warn('[withRateLimit] Upstash not configured, using memory store');
+  if (!url || !token || !url.startsWith('https://')) {
+    if (url && !url.startsWith('https://')) {
+      console.warn('[withRateLimit] UPSTASH_REDIS_REST_URL must start with https://, falling back to memory store');
+    }
     return memoryRateLimit(key, rpm);
   }
 
   try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 2000);
+
     // Use a simple INCR + EXPIRE approach via Upstash REST API
     // See: https://upstash.com/docs/redis/features/ratelimiting
     const response = await fetch(url, {
       method: 'POST',
+      signal: controller.signal,
       headers: {
         Authorization: `Bearer ${token}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify([
+      body: JSON.stringify(
         ['eval', `
           local key = KEYS[1]
           local limit = tonumber(ARGV[1])
@@ -85,17 +91,18 @@ async function upstashRateLimit(key: string, rpm: number): Promise<RateLimitResu
           else
             return {0, 0, ttl}
           end
-        `, 1, key, rpm, 60],
-      ]),
+        `, 1, key, rpm, 60]
+      ),
     });
+    clearTimeout(timeoutId);
 
     if (!response.ok) {
       console.error('[withRateLimit] Upstash error:', response.status);
       return memoryRateLimit(key, rpm);
     }
 
-    const result = await response.json();
-    const data = result?.[0] ?? result;
+    const json = await response.json();
+    const data = json.result;
     if (Array.isArray(data) && data.length >= 3) {
       return {
         allowed: data[0] === 1,
@@ -113,7 +120,7 @@ async function upstashRateLimit(key: string, rpm: number): Promise<RateLimitResu
 
 // ── Public wrapper ─────────────────────────────────────────
 export function withRateLimit<T = unknown>(
-  handler: (req: NextRequest, context: { userId: string; params: T }) => Promise<NextResponse>,
+  handler: (req: NextRequest, context: { userId: string; params: T }) => Promise<NextResponse | Response>,
   config: RateLimitConfig = {},
 ) {
   const rpm = config.rpm ?? 60;
@@ -138,16 +145,16 @@ export function withRateLimit<T = unknown>(
 
     const response = await handler(req, context);
 
-    // Add rate-limit headers
-    const responseBody = await response.json().catch(() => ({}));
-    return NextResponse.json(responseBody, {
+    // Add rate-limit headers without consuming the body (to preserve streams)
+    const newHeaders = new Headers(response.headers);
+    newHeaders.set('X-RateLimit-Limit', String(rpm));
+    newHeaders.set('X-RateLimit-Remaining', String(result.remaining));
+    newHeaders.set('X-RateLimit-Reset', String(result.reset));
+
+    return new Response(response.body, {
       status: response.status,
-      headers: {
-        ...Object.fromEntries(response.headers.entries()),
-        'X-RateLimit-Limit': String(rpm),
-        'X-RateLimit-Remaining': String(result.remaining),
-        'X-RateLimit-Reset': String(result.reset),
-      },
-    });
+      statusText: response.statusText,
+      headers: newHeaders,
+    }) as NextResponse;
   };
 }

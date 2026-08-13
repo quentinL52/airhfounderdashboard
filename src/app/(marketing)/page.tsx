@@ -93,14 +93,14 @@ export default function LandingPage() {
     '@type': 'Product',
     name: 'Helmdash',
     description: seoT('description'),
-    image: 'https://helmdash.com/icon.png',
+    image: `${process.env.NEXT_PUBLIC_APP_URL}/icon.png`,
     brand: {
       '@type': 'Brand',
       name: 'Helmdash'
     },
     offers: {
       '@type': 'Offer',
-      url: 'https://helmdash.com/pricing',
+      url: `${process.env.NEXT_PUBLIC_APP_URL}/pricing`,
       priceCurrency: 'EUR',
       price: '19',
       availability: 'https://schema.org/InStock'
@@ -578,11 +578,12 @@ export default function LandingPage() {
       </section>
 
       {/* ===== FAQ ===== */}
-      <section style={{ maxWidth: 800, margin: "0 auto", padding: "40px 32px 100px" }}>
-        <span style={{ fontFamily: '"IBM Plex Mono", monospace', fontSize: 12, letterSpacing: "1.5px", color: accent, fontWeight: 600 }}>FAQ</span>
-        <h2 style={{ fontFamily: '"IBM Plex Mono", monospace', fontSize: "clamp(28px,3.6vw,44px)", fontWeight: 600, letterSpacing: "-1.5px", lineHeight: 1.1, margin: "10px 0 40px" }}>Questions fréquentes</h2>
-        
-        <Accordion type="single" collapsible className="w-full">
+      <section id="faq" style={{ background: "#E9E4D8", padding: "70px 32px 100px" }}>
+        <div style={{ maxWidth: 800, margin: "0 auto" }}>
+          <span style={{ fontFamily: '"IBM Plex Mono", monospace', fontSize: 12, letterSpacing: "1.5px", color: accent, fontWeight: 600 }}>FAQ</span>
+          <h2 style={{ fontFamily: '"IBM Plex Mono", monospace', fontSize: "clamp(28px,3.6vw,44px)", fontWeight: 600, letterSpacing: "-1.5px", lineHeight: 1.1, margin: "10px 0 40px" }}>Questions fréquentes</h2>
+          
+          <Accordion type="single" collapsible className="w-full">
           {[1, 2, 3, 4, 5, 6, 7].map((i) => (
             <AccordionItem key={i} value={`item-${i}`} style={{ borderBottom: "1px solid hsla(215, 52%, 12%, 0.1)" }}>
               <AccordionTrigger className="hover:no-underline text-left" style={{ fontFamily: '"IBM Plex Mono", monospace', fontSize: 16, fontWeight: 600, color: "hsl(215, 52%, 12%)", padding: "20px 0" }}>
@@ -594,6 +595,7 @@ export default function LandingPage() {
             </AccordionItem>
           ))}
         </Accordion>
+        </div>
       </section>
 
       {/* ===== FOOTER ===== */}

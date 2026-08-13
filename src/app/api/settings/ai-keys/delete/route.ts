@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { withAuth } from '@/lib/security';
+import { logger } from '@/lib/logging/logger';
 
 /**
  * DELETE /api/settings/ai-keys?provider=openai
@@ -17,7 +18,7 @@ async function handler() {
       message: 'API key deleted',
     });
   } catch (error) {
-    console.error('[Settings AI Keys] Error deleting key:', error);
+    logger.error('[Settings AI Keys] Error deleting key', error);
     return NextResponse.json(
       { error: 'Failed to delete API key' },
       { status: 500 },

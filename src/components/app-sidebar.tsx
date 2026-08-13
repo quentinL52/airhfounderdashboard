@@ -116,7 +116,7 @@ export function AppSidebar() {
                         <div className="relative w-8 h-8 shrink-0">
                             <Image
                                 alt="Helmdash Logo"
-                                                                src="/helmdash_logo.png"
+                                                                src="/helmdash-lockup-navy.png"
                                 fill
                                 className="object-contain"
                             />
